@@ -1,151 +1,97 @@
-# Carryo Mobile App
+This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
-React Native mobile application for the Carryo delivery marketplace platform.
+# Getting Started
 
-## Features
+> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
 
-- **Multi-user support**: Customers, Drivers, and Admins
-- **Real-time messaging**: Chat between customers and drivers
-- **Payment processing**: Stripe integration for secure payments
-- **Job management**: Create, track, and manage delivery jobs
-- **Maps integration**: Location services and route visualization
-- **Push notifications**: Real-time updates for job status and messages
-- **Bilingual support**: English and Georgian languages
-- **Offline capability**: View cached data when offline
+## Step 1: Start Metro
 
-## Tech Stack
+First, you will need to run **Metro**, the JavaScript build tool for React Native.
 
-- React Native 0.74+
-- TypeScript
-- React Navigation v6
-- React Query (TanStack Query)
-- Zustand (State Management)
-- Supabase (Backend & Auth)
-- Stripe React Native SDK
-- React Native Maps
-- React Native Paper
-- i18next (Internationalization)
+To start the Metro dev server, run the following command from the root of your React Native project:
 
-## Prerequisites
+```sh
+# Using npm
+npm start
 
-- Node.js 18+
-- React Native CLI
-- iOS: Xcode 14+ (for iOS development)
-- Android: Android Studio (for Android development)
-- Supabase account
-- Stripe account
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd delivery-marketplace-app
+# OR using Yarn
+yarn start
 ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+## Step 2: Build and run your app
 
-3. Set up environment variables:
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and add your configuration:
-- `API_BASE_URL`: Your Next.js backend API URL
-- `SUPABASE_URL`: Your Supabase project URL
-- `SUPABASE_ANON_KEY`: Your Supabase anonymous key
-- `STRIPE_PUBLISHABLE_KEY`: Your Stripe publishable key
-- `GOOGLE_MAPS_API_KEY`: Your Google Maps API key
-- Firebase configuration (for push notifications)
-
-4. Install iOS pods (iOS only):
-```bash
-cd ios && pod install && cd ..
-```
-
-## Running the App
-
-### iOS
-```bash
-npm run ios
-```
+With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
 
 ### Android
-```bash
+
+```sh
+# Using npm
 npm run android
+
+# OR using Yarn
+yarn android
 ```
-
-## Project Structure
-
-```
-src/
-├── navigation/       # Navigation configuration
-├── screens/         # Screen components
-│   ├── auth/       # Authentication screens
-│   ├── customer/   # Customer screens
-│   ├── driver/     # Driver screens
-│   ├── admin/      # Admin screens
-│   └── shared/     # Shared screens
-├── components/      # Reusable components
-├── services/        # API and service layer
-├── store/          # State management
-├── hooks/          # Custom React hooks
-├── utils/           # Utility functions
-├── types/           # TypeScript types
-├── i18n/            # Internationalization
-└── theme/           # Theme configuration
-```
-
-## Development
-
-### Type Checking
-```bash
-npm run type-check
-```
-
-### Linting
-```bash
-npm run lint
-```
-
-## Environment Variables
-
-Create a `.env` file in the root directory with the following variables:
-
-- `API_BASE_URL`: Backend API base URL
-- `SUPABASE_URL`: Supabase project URL
-- `SUPABASE_ANON_KEY`: Supabase anonymous key
-- `STRIPE_PUBLISHABLE_KEY`: Stripe publishable key
-- `GOOGLE_MAPS_API_KEY`: Google Maps API key
-- Firebase configuration variables
-
-## Building for Production
 
 ### iOS
-1. Open `ios/Carryo.xcworkspace` in Xcode
-2. Select your signing team
-3. Archive and upload to App Store
 
-### Android
-```bash
-cd android
-./gradlew assembleRelease
+For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+
+The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+
+```sh
+bundle install
 ```
 
-## Contributing
+Then, and every time you update your native dependencies, run:
 
-1. Create a feature branch
-2. Make your changes
-3. Submit a pull request
+```sh
+bundle exec pod install
+```
 
-## License
+For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
 
-[Your License Here]
+```sh
+# Using npm
+npm run ios
 
-## Support
+# OR using Yarn
+yarn ios
+```
 
-For support, email support@carryo.com or open an issue in the repository.
+If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
 
+This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+
+## Step 3: Modify your app
+
+Now that you have successfully run the app, let's make changes!
+
+Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+
+When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+
+- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
+- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+
+## Congratulations! :tada:
+
+You've successfully run and modified your React Native App. :partying_face:
+
+### Now what?
+
+- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
+- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+
+# Troubleshooting
+
+If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+
+# Learn More
+
+To learn more about React Native, take a look at the following resources:
+
+- [React Native Website](https://reactnative.dev) - learn more about React Native.
+- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
+- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
+- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
+- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
