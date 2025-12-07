@@ -1,8 +1,174 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Carryo Delivery Marketplace Mobile App
 
-# Getting Started
+A React Native mobile application for Carryo - a delivery marketplace connecting customers with drivers. Built with React Native 0.82.1, TypeScript, React Navigation, React Query, and Zustand.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Features
+
+- 🔐 Authentication (Login/Signup)
+- 📦 Order creation flow (4 steps)
+- 📍 Real-time order tracking
+- 💬 In-app messaging
+- 💳 Payment integration (Stripe)
+- 🗺️ Maps integration (Google Maps)
+- 🌍 Internationalization (English/Georgian)
+- 👥 Dual user roles (Customer/Driver)
+
+## Tech Stack
+
+- **React Native**: 0.82.1
+- **React**: 19.1.1
+- **TypeScript**: 5.8.3
+- **Navigation**: React Navigation v6
+- **State Management**: Zustand + React Query
+- **Backend**: Supabase + Next.js API
+- **Maps**: react-native-maps
+- **Forms**: React Hook Form + Zod
+- **Payments**: Stripe React Native
+
+## Prerequisites
+
+- Node.js >= 20.19.4 (recommended)
+- npm or yarn
+- iOS: Xcode 14+ and CocoaPods
+- Android: Android Studio with Android SDK
+- React Native CLI
+
+## Getting Started
+
+### Step 1: Install Dependencies
+
+```sh
+npm install
+```
+
+### Step 2: Configure Environment Variables
+
+Create a `.env` file in the root directory (use `.env.example` as a template):
+
+```bash
+API_BASE_URL=https://your-domain.com/api
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-supabase-anon-key
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+GOOGLE_MAPS_API_KEY=your-google-maps-key
+```
+
+### Step 3: iOS Setup
+
+```sh
+cd ios
+pod install
+cd ..
+```
+
+### Step 4: Android Setup
+
+The Android configuration is already set up. Make sure to add your Google Maps API key to `android/app/src/main/AndroidManifest.xml` if you haven't already.
+
+### Step 5: Start Metro Bundler
+
+```sh
+npm start
+```
+
+### Step 6: Run the App
+
+**iOS:**
+```sh
+npm run ios
+```
+
+**Android:**
+```sh
+npm run android
+```
+
+## Project Structure
+
+```
+src/
+├── screens/          # Screen components
+│   ├── auth/        # Authentication screens
+│   ├── customer/    # Customer-specific screens
+│   ├── driver/      # Driver-specific screens
+│   └── shared/      # Shared screens
+├── components/      # Reusable components
+│   ├── ui/          # UI components (Button, Input, etc.)
+│   └── shared/      # Shared components
+├── navigation/       # Navigation configuration
+├── hooks/           # Custom hooks
+│   ├── queries/     # React Query hooks
+│   └── mutations/   # Mutation hooks
+├── stores/           # Zustand stores
+├── lib/              # Libraries and utilities
+│   ├── api/         # API client
+│   ├── supabase/    # Supabase client
+│   └── utils/       # Utility functions
+├── types/            # TypeScript types
+├── constants/        # Constants (Colors, Typography, etc.)
+└── i18n/            # Internationalization
+```
+
+## Development
+
+### Running Tests
+
+```sh
+npm test
+```
+
+### Linting
+
+```sh
+npm run lint
+```
+
+### Clearing Cache
+
+If you encounter issues, try clearing the Metro cache:
+
+```sh
+npm start -- --reset-cache
+```
+
+## Building for Production
+
+### iOS
+
+1. Open `ios/AwesomProject.xcworkspace` in Xcode
+2. Select your target device/simulator
+3. Product → Archive
+
+### Android
+
+```sh
+cd android
+./gradlew assembleRelease
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue: Vector Icons not showing**
+- iOS: Run `cd ios && pod install && cd ..`
+- Android: Rebuild the app
+
+**Issue: Maps not showing**
+- Ensure Google Maps API key is set in AndroidManifest.xml
+- Enable Maps SDK in Google Cloud Console
+- Test on a real device (emulator requires Google Play Services)
+
+**Issue: TypeScript path aliases not working**
+- Restart Metro bundler
+- Clear cache: `npm start -- --reset-cache`
+
+## Learn More
+
+- [React Native Documentation](https://reactnative.dev)
+- [React Navigation](https://reactnavigation.org)
+- [React Query](https://tanstack.com/query)
+- [Zustand](https://zustand-demo.pmnd.rs)
 
 ## Step 1: Start Metro
 
