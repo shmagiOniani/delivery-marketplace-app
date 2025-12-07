@@ -20,8 +20,10 @@ import type { CustomerTabScreenProps } from '@/types/navigation';
 
 const FILTER_TABS: { label: string; status?: JobStatus }[] = [
   { label: 'All' },
-  { label: 'Active', status: 'active' },
-  { label: 'Completed', status: 'completed' },
+  { label: 'Pending', status: 'pending' },
+  { label: 'Accepted', status: 'accepted' },
+  { label: 'In Transit', status: 'in_transit' },
+  { label: 'Delivered', status: 'delivered' },
   { label: 'Cancelled', status: 'cancelled' },
 ];
 

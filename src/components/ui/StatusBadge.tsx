@@ -16,27 +16,33 @@ const getStatusConfig = (status: JobStatus) => {
         backgroundColor: Colors.warning,
         textColor: Colors.dark,
       };
-    case 'active':
+    case 'accepted':
       return {
-        label: 'Active',
+        label: 'Accepted',
         backgroundColor: Colors.success,
         textColor: Colors.white,
       };
-    case 'in_progress':
+    case 'in_transit':
       return {
-        label: 'In Progress',
+        label: 'In Transit',
         backgroundColor: Colors.primary,
         textColor: Colors.white,
       };
-    case 'completed':
+    case 'delivered':
       return {
-        label: 'Completed',
+        label: 'Delivered',
         backgroundColor: Colors.darkBlue,
         textColor: Colors.white,
       };
     case 'cancelled':
       return {
         label: 'Cancelled',
+        backgroundColor: Colors.error,
+        textColor: Colors.white,
+      };
+    case 'banned':
+      return {
+        label: 'Banned',
         backgroundColor: Colors.error,
         textColor: Colors.white,
       };

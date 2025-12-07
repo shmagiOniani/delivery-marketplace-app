@@ -18,6 +18,7 @@ interface LoginResponse {
     refresh_token: string;
     expires_at: number;
   };
+  role: UserRole;
 }
 
 interface SignupResponse {
@@ -31,7 +32,7 @@ interface SignupResponse {
     access_token: string;
     refresh_token: string;
     expires_at: number;
-  };
+  } | null;
 }
 
 export const useLoginMutation = () => {
@@ -77,25 +78,34 @@ export const useSignupMutation = () => {
       const response = await apiClient.post<SignupResponse>('/api/auth/signup', {
         email: data.email,
         password: data.password,
-        full_name: data.full_name,
+        fullName: data.full_name,
+        role: data.role || 'customer',
       });
       return response;
     },
     onSuccess: (data) => {
-      const session: Session = {
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-        expires_at: data.session.expires_at,
-        user: {
-          id: data.user.id,
-          email: data.user.email,
-          full_name: data.user.full_name,
-          role: data.user.role,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      };
-      login(session);
+      if (data.session) {
+        const session: Session = {
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+          expires_at: data.session.expires_at,
+          user: {
+            id: data.user.id,
+            email: data.user.email,
+            full_name: data.user.full_name,
+            role: data.user.role,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        };
+        login(session);
+      } else {
+        // Email confirmation required - show message to user
+        showErrorAlert(
+          { message: 'Please check your email to confirm your account' },
+          'Email Confirmation Required'
+        );
+      }
     },
     onError: (error) => {
       showErrorAlert(error, 'Signup Failed');

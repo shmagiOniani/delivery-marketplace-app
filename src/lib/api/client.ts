@@ -67,13 +67,20 @@ class ApiClient {
           }
         }
 
+        const errorData = error.response?.data as
+          | { error?: string; message?: string; reasons?: string[] }
+          | undefined;
+
         const apiError: ApiError = {
           message:
-            (error.response?.data as { message?: string })?.message ||
+            errorData?.error ||
+            errorData?.message ||
             error.message ||
             'An error occurred',
           code: error.code,
           status: error.response?.status,
+          error: errorData?.error,
+          reasons: errorData?.reasons,
         };
 
         return Promise.reject(apiError);

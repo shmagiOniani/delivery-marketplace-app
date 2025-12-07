@@ -39,6 +39,7 @@ export const SignupScreen: React.FC<AuthScreenProps<'Signup'>> = ({
       password: '',
       confirmPassword: '',
       full_name: '',
+      role: 'customer',
     },
   });
 
@@ -175,6 +176,55 @@ export const SignupScreen: React.FC<AuthScreenProps<'Signup'>> = ({
               </Text>
             </View>
 
+            <Controller
+              control={control}
+              name="role"
+              render={({ field: { onChange, value } }) => (
+                <View style={styles.roleContainer}>
+                  <Text style={styles.roleLabel}>I want to:</Text>
+                  <View style={styles.roleButtons}>
+                    <TouchableOpacity
+                      style={[
+                        styles.roleButton,
+                        value === 'customer' && styles.roleButtonActive,
+                      ]}
+                      onPress={() => onChange('customer')}
+                      disabled={signupMutation.isPending}
+                    >
+                      <Text
+                        style={[
+                          styles.roleButtonText,
+                          value === 'customer' && styles.roleButtonTextActive,
+                        ]}
+                      >
+                        Order Delivery
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.roleButton,
+                        value === 'driver' && styles.roleButtonActive,
+                      ]}
+                      onPress={() => onChange('driver')}
+                      disabled={signupMutation.isPending}
+                    >
+                      <Text
+                        style={[
+                          styles.roleButtonText,
+                          value === 'driver' && styles.roleButtonTextActive,
+                        ]}
+                      >
+                        Deliver Orders
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  {errors.role && (
+                    <Text style={styles.errorText}>{errors.role.message}</Text>
+                  )}
+                </View>
+              )}
+            />
+
             <Button
               title="Sign Up"
               onPress={handleSubmit(onSubmit)}
@@ -256,5 +306,45 @@ const styles = StyleSheet.create({
     ...Typography.body,
     color: Colors.primary,
     fontWeight: '600',
+  },
+  roleContainer: {
+    marginBottom: Spacing.md,
+  },
+  roleLabel: {
+    ...Typography.body,
+    color: Colors.text.primary,
+    marginBottom: Spacing.sm,
+    fontWeight: '600',
+  },
+  roleButtons: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  roleButton: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+  },
+  roleButtonActive: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary + '10',
+  },
+  roleButtonText: {
+    ...Typography.body,
+    color: Colors.text.secondary,
+    fontWeight: '600',
+  },
+  roleButtonTextActive: {
+    color: Colors.primary,
+  },
+  errorText: {
+    ...Typography.tiny,
+    color: Colors.error,
+    marginTop: Spacing.xs,
   },
 });

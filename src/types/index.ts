@@ -1,15 +1,18 @@
-export type UserRole = 'customer' | 'driver';
+export type UserRole = 'customer' | 'driver' | 'admin';
 
 export type JobStatus =
   | 'pending'
-  | 'active'
-  | 'in_progress'
-  | 'completed'
-  | 'cancelled';
+  | 'accepted'
+  | 'in_transit'
+  | 'delivered'
+  | 'cancelled'
+  | 'banned';
 
-export type ItemType = 'food' | 'package' | 'furniture' | 'other';
+export type JobPurpose = 'move' | 'recycle' | 'gift';
 
-export type ItemSize = 'small' | 'medium' | 'large' | 'xlarge';
+export type PaymentType = 'CASH' | 'ONLINE_PAYMENT';
+
+export type PaymentStatus = 'pending' | 'held' | 'released' | 'refunded';
 
 export interface User {
   id: string;
@@ -18,6 +21,7 @@ export interface User {
   phone?: string;
   avatar_url?: string;
   role: UserRole;
+  rating?: number;
   created_at: string;
   updated_at: string;
 }
@@ -32,32 +36,51 @@ export interface Session {
 export interface Job {
   id: string;
   customer_id: string;
-  driver_id?: string;
-  item_type: ItemType;
-  item_size: ItemSize;
-  pickup_address: string;
-  pickup_latitude: number;
-  pickup_longitude: number;
-  delivery_address: string;
-  delivery_latitude: number;
-  delivery_longitude: number;
-  description?: string;
-  images?: string[];
-  price: number;
-  platform_fee: number;
-  driver_payout: number;
+  driver_id: string | null;
+  title: string;
+  description: string | null;
   status: JobStatus;
-  distance_km?: number;
-  estimated_duration_minutes?: number;
-  floor?: number;
-  has_elevator?: boolean;
-  contact_name?: string;
-  contact_phone?: string;
-  scheduled_at?: string;
+  job_type: JobPurpose;
+  pickup_address: string;
+  pickup_lat: number;
+  pickup_lng: number;
+  pickup_contact_name: string | null;
+  pickup_contact_phone: string | null;
+  pickup_notes: string | null;
+  pickup_photos: string[] | null;
+  delivery_address: string;
+  delivery_lat: number;
+  delivery_lng: number;
+  delivery_contact_name: string | null;
+  delivery_contact_phone: string | null;
+  delivery_notes: string | null;
+  delivery_photos: string[] | null;
+  item_category: string | null;
+  item_size: string | null;
+  item_weight: string | null;
+  requires_help: boolean;
+  customer_price: number;
+  driver_payout: number;
+  platform_fee: number;
+  payment_type: PaymentType;
+  pickup_time: string | null;
+  delivery_time: string | null;
+  scheduled_pickup: string | null;
   created_at: string;
   updated_at: string;
-  customer?: User;
-  driver?: User;
+  customer?: {
+    id: string;
+    full_name: string;
+    rating: number;
+    avatar_url: string | null;
+    phone: string | null;
+  } | null;
+  driver?: {
+    id: string;
+    full_name: string;
+    rating: number;
+    avatar_url: string | null;
+  } | null;
 }
 
 export interface Message {
@@ -74,11 +97,12 @@ export interface Message {
 export interface Payment {
   id: string;
   job_id: string;
+  customer_id: string;
+  driver_id: string | null;
   amount: number;
-  platform_fee: number;
-  driver_payout: number;
-  status: 'pending' | 'completed' | 'failed' | 'refunded';
-  payment_intent_id?: string;
+  status: PaymentStatus;
+  stripe_payment_intent_id: string | null;
+  stripe_transfer_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -109,6 +133,8 @@ export interface ApiError {
   message: string;
   code?: string;
   status?: number;
+  error?: string;
+  reasons?: string[];
 }
 
 export interface PaginatedResponse<T> {

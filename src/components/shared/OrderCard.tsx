@@ -15,7 +15,12 @@ interface OrderCardProps {
 }
 
 export const OrderCard: React.FC<OrderCardProps> = ({ order, onPress }) => {
-  const firstImage = order.images && order.images.length > 0 ? order.images[0] : null;
+  const firstImage =
+    order.pickup_photos && order.pickup_photos.length > 0
+      ? order.pickup_photos[0]
+      : order.delivery_photos && order.delivery_photos.length > 0
+      ? order.delivery_photos[0]
+      : null;
 
   return (
     <Card onPress={onPress} style={styles.card}>
@@ -25,7 +30,12 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, onPress }) => {
         )}
         <View style={styles.details}>
           <View style={styles.header}>
-            <Text style={styles.orderId}>Order #{order.id.slice(0, 8)}</Text>
+            <View style={styles.titleContainer}>
+              <Text style={styles.title} numberOfLines={1}>
+                {order.title}
+              </Text>
+              <Text style={styles.orderId}>#{order.id.slice(0, 8)}</Text>
+            </View>
             <StatusBadge status={order.status} />
           </View>
 
@@ -46,12 +56,9 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, onPress }) => {
 
           <View style={styles.footer}>
             <View style={styles.priceContainer}>
-              <Text style={styles.price}>{order.price.toFixed(2)} GEL</Text>
-              {order.distance_km && (
-                <Text style={styles.distance}>
-                  {order.distance_km.toFixed(1)} km
-                </Text>
-              )}
+              <Text style={styles.price}>
+                {order.customer_price.toFixed(2)} GEL
+              </Text>
             </View>
             <Text style={styles.time}>{timeAgo(order.created_at)}</Text>
           </View>
@@ -83,9 +90,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.sm,
   },
-  orderId: {
+  titleContainer: {
+    flex: 1,
+    marginRight: Spacing.xs,
+  },
+  title: {
     ...Typography.bodyBold,
     color: Colors.text.primary,
+    marginBottom: 2,
+  },
+  orderId: {
+    ...Typography.tiny,
+    color: Colors.text.light,
   },
   route: {
     marginBottom: Spacing.sm,

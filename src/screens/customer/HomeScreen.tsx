@@ -29,7 +29,7 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
     error,
     refetch,
     isRefetching,
-  } = useJobsQuery({ status: 'active', limit: 5 });
+  } = useJobsQuery({ limit: 5 });
 
   const activeJobs = jobsData?.data || [];
 

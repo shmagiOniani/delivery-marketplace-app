@@ -8,19 +8,44 @@ export const useCreateOrderMutation = () => {
 
   return useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await apiClient.post<{ data: Job }>('/api/jobs', formData, {
+      const response = await apiClient.post<{
+        success: boolean;
+        data: Job;
+        error?: string;
+        reasons?: string[];
+      }>('/api/jobs', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      return response.data;
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
-      showSuccessAlert('Order created successfully!');
+      if (response.reasons && response.reasons.length > 0) {
+        showErrorAlert(
+          {
+            message: 'Order created but flagged for moderation',
+            reasons: response.reasons,
+          },
+          'Content Moderation Alert'
+        );
+      } else {
+        showSuccessAlert('Order created successfully!');
+      }
     },
-    onError: (error) => {
-      showErrorAlert(error, 'Failed to create order');
+    onError: (error: any) => {
+      if (error.reasons && error.reasons.length > 0) {
+        showErrorAlert(
+          {
+            message: error.message || 'Failed to create order',
+            reasons: error.reasons,
+          },
+          'Order Creation Failed'
+        );
+      } else {
+        showErrorAlert(error, 'Failed to create order');
+      }
     },
   });
 };
@@ -58,7 +83,8 @@ export const useCancelOrderMutation = () => {
 
   return useMutation({
     mutationFn: async (jobId: string) => {
-      await apiClient.delete(`/api/jobs/${jobId}`);
+      const response = await apiClient.delete<{ success: boolean }>(`/api/jobs/${jobId}`);
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
