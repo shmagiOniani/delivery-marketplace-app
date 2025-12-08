@@ -56,11 +56,12 @@ export const useLoginMutation = () => {
           id: data.user.id,
           email: data.user.email,
           full_name: data.user.full_name,
-          role: data.user.role,
+          role: data.role,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
       };
+        console.log("sassa", session)
       login(session);
     },
     onError: (error) => {
