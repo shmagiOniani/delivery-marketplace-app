@@ -6,11 +6,11 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
+  Image,
+  FlatList,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useJobsQuery } from '@/hooks/queries/useJobsQuery';
-import { OrderCard } from '@/components/shared/OrderCard';
-import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Colors } from '@/constants/Colors';
@@ -19,6 +19,8 @@ import { Spacing } from '@/constants/Spacing';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { CustomerTabScreenProps } from '@/types/navigation';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { timeAgo } from '@/utils/dateFormatters';
 
 export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
   const navigation = useNavigation();
@@ -29,7 +31,7 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
     error,
     refetch,
     isRefetching,
-  } = useJobsQuery({ limit: 5 });
+  } = useJobsQuery({ limit: 10 });
 
   const activeJobs = jobsData?.data || [];
 
@@ -62,141 +64,294 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
     } as any);
   };
 
+  const handleMessages = () => {
+    // Navigate to messages - will be implemented
+  };
+
+  // Mock recent activity data - replace with actual data from API
+  const recentActivity = [
+    {
+      id: '1',
+      courierName: 'Courier John P.',
+      action: 'Delivered',
+      timeAgo: '2 min ago',
+      icon: 'local-shipping',
+    },
+    {
+      id: '2',
+      courierName: 'Courier John P.',
+      action: 'Picked up',
+      timeAgo: '15 min ago',
+      icon: 'phone',
+    },
+  ];
+
   if (isLoading) {
     return <LoadingSpinner fullScreen />;
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
-      }
-    >
+    <View style={styles.container}>
+      {/* Dark Blue Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Welcome back!</Text>
-          <Text style={styles.name}>
-            {user?.full_name || user?.email || 'User'}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={handleNewOrder}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.actionIcon, { backgroundColor: Colors.primary }]}>
-            <Icon name="add" size={24} color={Colors.white} />
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.appName}>Carryo</Text>
+            <Text style={styles.greeting}>
+              გამარჯობა, {user?.full_name?.split(' ')[0] || 'User'}!
+            </Text>
           </View>
-          <Text style={styles.actionLabel}>New Order</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={handleTrackOrder}
-          activeOpacity={0.7}
-        >
-          <View
-            style={[styles.actionIcon, { backgroundColor: Colors.success }]}
-          >
-            <Icon name="location-on" size={24} color={Colors.white} />
-          </View>
-          <Text style={styles.actionLabel}>Track</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={handleViewHistory}
-          activeOpacity={0.7}
-        >
-          <View
-            style={[styles.actionIcon, { backgroundColor: Colors.darkBlue }]}
-          >
-            <Icon name="history" size={24} color={Colors.white} />
-          </View>
-          <Text style={styles.actionLabel}>History</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Active Orders</Text>
           <TouchableOpacity
             onPress={() =>
               navigation.navigate('Customer', {
-                screen: 'Orders',
+                screen: 'Profile',
               } as any)
             }
           >
-            <Text style={styles.seeAll}>See All</Text>
+            <View style={styles.avatarContainer}>
+              {user?.avatar_url ? (
+                <Image
+                  source={{ uri: user.avatar_url }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Icon name="person" size={24} color={Colors.white} />
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+        }
+      >
+        {/* Yellow Action Buttons */}
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleNewOrder}
+            activeOpacity={0.7}
+          >
+            <View style={styles.actionIconContainer}>
+              <Icon name="add" size={28} color={Colors.dark} />
+            </View>
+            <Text style={styles.actionLabel}>New Order</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleTrackOrder}
+            activeOpacity={0.7}
+          >
+            <View style={styles.actionIconContainer}>
+              <Icon name="location-on" size={28} color={Colors.dark} />
+            </View>
+            <Text style={styles.actionLabel}>Track</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleViewHistory}
+            activeOpacity={0.7}
+          >
+            <View style={styles.actionIconContainer}>
+              <Icon name="history" size={28} color={Colors.dark} />
+            </View>
+            <Text style={styles.actionLabel}>History</Text>
           </TouchableOpacity>
         </View>
 
-        {error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>
-              Failed to load orders. Pull to refresh.
+        {/* Active Orders Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Active orders</Text>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('Customer', {
+                  screen: 'Orders',
+                } as any)
+              }
+            >
+              <Text style={styles.seeAll}>See all</Text>
+            </TouchableOpacity>
+          </View>
+
+          {error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>
+                Failed to load orders. Pull to refresh.
+              </Text>
+            </View>
+          ) : activeJobs.length === 0 ? (
+            <EmptyState
+              title="No Active Orders"
+              message="Create your first order to get started"
+              actionText="Create Order"
+              onAction={handleNewOrder}
+              icon="shopping-bag"
+            />
+          ) : (
+            <FlatList
+              data={activeJobs}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <HorizontalOrderCard
+                  order={item}
+                  onPress={() => handleOrderPress(item.id)}
+                />
+              )}
+              contentContainerStyle={styles.horizontalList}
+            />
+          )}
+        </View>
+
+        {/* Recent Activity Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recent activity</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>See all</Text>
+            </TouchableOpacity>
+          </View>
+
+          {recentActivity.map((activity) => (
+            <View key={activity.id} style={styles.activityItem}>
+              <View style={styles.activityAvatar}>
+                <Icon name="person" size={20} color={Colors.white} />
+              </View>
+              <View style={styles.activityContent}>
+                <Text style={styles.activityText}>
+                  {activity.courierName}
+                </Text>
+                <Text style={styles.activityTime}>
+                  {activity.timeAgo} · {activity.action}
+                </Text>
+              </View>
+              <Icon
+                name={activity.icon as any}
+                size={24}
+                color={Colors.text.secondary}
+              />
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
+  );
+};
+
+// Horizontal Order Card Component
+interface HorizontalOrderCardProps {
+  order: any;
+  onPress: () => void;
+}
+
+const HorizontalOrderCard: React.FC<HorizontalOrderCardProps> = ({
+  order,
+  onPress,
+}) => {
+  return (
+    <TouchableOpacity
+      style={styles.horizontalCard}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.horizontalCardContent}>
+        <View style={styles.horizontalCardHeader}>
+          <Text style={styles.horizontalCardTitle}>
+            Order #{order.id.slice(-4).toUpperCase()}
+          </Text>
+          <StatusBadge status={order.status} />
+        </View>
+        <View style={styles.horizontalCardBody}>
+          <Icon name="inventory-2" size={24} color={Colors.primary} />
+          <View style={styles.horizontalCardPrice}>
+            <Text style={styles.horizontalCardPriceText}>
+              ${order.customer_price.toFixed(2)}
             </Text>
           </View>
-        ) : activeJobs.length === 0 ? (
-          <EmptyState
-            title="No Active Orders"
-            message="Create your first order to get started"
-            actionText="Create Order"
-            onAction={handleNewOrder}
-            icon="shopping-bag"
-          />
-        ) : (
-          activeJobs.map((job) => (
-            <OrderCard
-              key={job.id}
-              order={job}
-              onPress={() => handleOrderPress(job.id)}
-            />
-          ))
-        )}
+        </View>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressFill, { width: '60%' }]} />
+        </View>
       </View>
-    </ScrollView>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
-  },
-  content: {
-    padding: Spacing.md,
+    backgroundColor: Colors.white,
   },
   header: {
-    marginBottom: Spacing.lg,
+    backgroundColor: Colors.darkBlue,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  appName: {
+    ...Typography.h2,
+    color: Colors.white,
+    fontWeight: '700',
+    marginBottom: Spacing.xs,
   },
   greeting: {
     ...Typography.body,
-    color: Colors.text.secondary,
-    marginBottom: Spacing.xs,
+    color: Colors.white,
+    opacity: 0.9,
   },
-  name: {
-    ...Typography.h2,
-    color: Colors.text.primary,
+  avatarContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+  },
+  avatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    padding: Spacing.md,
   },
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: Spacing.xl,
+    gap: Spacing.md,
   },
   actionButton: {
-    alignItems: 'center',
     flex: 1,
+    alignItems: 'center',
   },
-  actionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  actionIconContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.sm,
@@ -205,9 +360,10 @@ const styles = StyleSheet.create({
     ...Typography.small,
     color: Colors.text.primary,
     fontWeight: '600',
+    textAlign: 'center',
   },
   section: {
-    marginTop: Spacing.md,
+    marginBottom: Spacing.xl,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -218,11 +374,92 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...Typography.h3,
     color: Colors.text.primary,
+    fontWeight: '600',
   },
   seeAll: {
     ...Typography.small,
     color: Colors.primary,
     fontWeight: '600',
+  },
+  horizontalList: {
+    paddingRight: Spacing.md,
+  },
+  horizontalCard: {
+    width: 280,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: Spacing.md,
+    marginRight: Spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  horizontalCardContent: {
+    flex: 1,
+  },
+  horizontalCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  horizontalCardTitle: {
+    ...Typography.bodyBold,
+    color: Colors.text.primary,
+  },
+  horizontalCardBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  horizontalCardPrice: {
+    marginLeft: Spacing.sm,
+  },
+  horizontalCardPriceText: {
+    ...Typography.h3,
+    color: Colors.text.primary,
+    fontWeight: '700',
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: Colors.lightGray,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: Colors.primary,
+    borderRadius: 2,
+  },
+  activityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  activityAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  activityContent: {
+    flex: 1,
+  },
+  activityText: {
+    ...Typography.bodyBold,
+    color: Colors.text.primary,
+    marginBottom: 2,
+  },
+  activityTime: {
+    ...Typography.small,
+    color: Colors.text.secondary,
   },
   errorContainer: {
     padding: Spacing.md,

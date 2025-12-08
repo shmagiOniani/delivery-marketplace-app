@@ -13,8 +13,8 @@ const getStatusConfig = (status: JobStatus) => {
     case 'pending':
       return {
         label: 'Pending',
-        backgroundColor: Colors.warning,
-        textColor: Colors.dark,
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
       };
     case 'accepted':
       return {
