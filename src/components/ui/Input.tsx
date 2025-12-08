@@ -35,13 +35,14 @@ export const Input: React.FC<InputProps> = ({
           <Icon
             name={icon}
             size={20}
-            color={error ? Colors.error : Colors.gray}
+            color={error ? Colors.error : Colors.text.secondary}
             style={styles.icon}
           />
         )}
         <TextInput
           style={[
             ComponentStyles.input,
+            { flex: 1, width: '100%' },
             icon && styles.inputWithIcon,
             error && styles.inputError,
             style,
@@ -68,6 +69,8 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
+    position: 'relative',
   },
   icon: {
     position: 'absolute',
@@ -76,6 +79,8 @@ const styles = StyleSheet.create({
   },
   inputWithIcon: {
     paddingLeft: 48,
+    flex: 1,
+    width: '100%',
   },
   inputError: {
     borderColor: Colors.error,

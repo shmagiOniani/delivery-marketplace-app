@@ -86,7 +86,7 @@ export const LoginScreen: React.FC<AuthScreenProps<'Login'>> = ({
               control={control}
               name="password"
               render={({ field: { onChange, onBlur, value } }) => (
-                <View>
+                <View style={styles.passwordContainer}>
                   <Input
                     label="Password"
                     placeholder="Enter your password"
@@ -99,15 +99,17 @@ export const LoginScreen: React.FC<AuthScreenProps<'Login'>> = ({
                     autoCapitalize="none"
                     autoComplete="password"
                     editable={!loginMutation.isPending}
+                    style={styles.passwordInput}
                   />
                   <TouchableOpacity
                     style={styles.passwordToggle}
                     onPress={() => setShowPassword(!showPassword)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
                     <Icon
                       name={showPassword ? 'visibility-off' : 'visibility'}
-                      size={20}
-                      color={Colors.gray}
+                      size={22}
+                      color={Colors.text.secondary}
                     />
                   </TouchableOpacity>
                 </View>
@@ -172,11 +174,19 @@ const styles = StyleSheet.create({
   form: {
     flex: 1,
   },
+  passwordContainer: {
+    width: '100%',
+    position: 'relative',
+  },
+  passwordInput: {
+    paddingRight: 48,
+  },
   passwordToggle: {
     position: 'absolute',
     right: 16,
     top: 40,
     padding: 8,
+    zIndex: 10,
   },
   forgotPassword: {
     alignSelf: 'flex-end',

@@ -109,7 +109,7 @@ export const SignupScreen: React.FC<AuthScreenProps<'Signup'>> = ({
               control={control}
               name="password"
               render={({ field: { onChange, onBlur, value } }) => (
-                <View>
+                <View style={styles.passwordContainer}>
                   <Input
                     label="Password"
                     placeholder="Enter your password"
@@ -122,15 +122,17 @@ export const SignupScreen: React.FC<AuthScreenProps<'Signup'>> = ({
                     autoCapitalize="none"
                     autoComplete="password-new"
                     editable={!signupMutation.isPending}
+                    style={styles.passwordInput}
                   />
                   <TouchableOpacity
                     style={styles.passwordToggle}
                     onPress={() => setShowPassword(!showPassword)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
                     <Icon
                       name={showPassword ? 'visibility-off' : 'visibility'}
-                      size={20}
-                      color={Colors.gray}
+                      size={22}
+                      color={Colors.text.secondary}
                     />
                   </TouchableOpacity>
                 </View>
@@ -141,7 +143,7 @@ export const SignupScreen: React.FC<AuthScreenProps<'Signup'>> = ({
               control={control}
               name="confirmPassword"
               render={({ field: { onChange, onBlur, value } }) => (
-                <View>
+                <View style={styles.passwordContainer}>
                   <Input
                     label="Confirm Password"
                     placeholder="Confirm your password"
@@ -154,15 +156,17 @@ export const SignupScreen: React.FC<AuthScreenProps<'Signup'>> = ({
                     autoCapitalize="none"
                     autoComplete="password-new"
                     editable={!signupMutation.isPending}
+                    style={styles.passwordInput}
                   />
                   <TouchableOpacity
                     style={styles.passwordToggle}
                     onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
                     <Icon
                       name={showConfirmPassword ? 'visibility-off' : 'visibility'}
-                      size={20}
-                      color={Colors.gray}
+                      size={22}
+                      color={Colors.text.secondary}
                     />
                   </TouchableOpacity>
                 </View>
@@ -274,11 +278,19 @@ const styles = StyleSheet.create({
   form: {
     flex: 1,
   },
+  passwordContainer: {
+    width: '100%',
+    position: 'relative',
+  },
+  passwordInput: {
+    paddingRight: 48,
+  },
   passwordToggle: {
     position: 'absolute',
     right: 16,
     top: 40,
     padding: 8,
+    zIndex: 10,
   },
   passwordHint: {
     marginTop: -Spacing.sm,

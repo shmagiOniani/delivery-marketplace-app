@@ -25,6 +25,8 @@ export const ComponentStyles = {
     paddingHorizontal: Spacing.md,
     paddingVertical: 12,
     fontSize: 16,
+    backgroundColor: Colors.white,
+    width: '100%',
   } as TextStyle,
 } as const;
 
