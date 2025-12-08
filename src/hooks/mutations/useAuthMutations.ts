@@ -41,7 +41,7 @@ export const useLoginMutation = () => {
 
   return useMutation({
     mutationFn: async (data: LoginFormData) => {
-      const response = await apiClient.post<LoginResponse>('/api/auth/login', {
+      const response = await apiClient.post<LoginResponse>('/auth/login', {
         email: data.email,
         password: data.password,
       });
