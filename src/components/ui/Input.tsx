@@ -33,7 +33,7 @@ export const Input: React.FC<InputProps> = ({
       <View style={styles.inputContainer}>
         {icon && (
           <Icon
-            name={icon}
+            name={icon === 'email' ? 'mail' : icon}
             size={20}
             color={error ? Colors.error : Colors.text.secondary}
             style={styles.icon}

@@ -6,6 +6,8 @@ import type { Job, Message } from './index';
 export type AuthStackParamList = {
   Login: undefined;
   Signup: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: { token?: string };
 };
 
 export type CustomerTabParamList = {

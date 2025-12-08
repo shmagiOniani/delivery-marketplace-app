@@ -73,7 +73,7 @@ export const LoginScreen: React.FC<AuthScreenProps<'Login'>> = ({
                   onChangeText={onChange}
                   onBlur={onBlur}
                   error={errors.email?.message}
-                  icon="email"
+                  icon="mail"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoComplete="email"
@@ -118,20 +118,20 @@ export const LoginScreen: React.FC<AuthScreenProps<'Login'>> = ({
 
             <TouchableOpacity
               style={styles.forgotPassword}
-              onPress={() => {
-                // TODO: Implement forgot password
-              }}
+              onPress={() => navigation.navigate('ForgotPassword')}
             >
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
 
-            <Button
-              title="Sign In"
-              onPress={handleSubmit(onSubmit)}
-              loading={loginMutation.isPending}
-              disabled={loginMutation.isPending}
-              style={styles.submitButton}
-            />
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Sign In"
+                onPress={handleSubmit(onSubmit)}
+                loading={loginMutation.isPending}
+                disabled={loginMutation.isPending}
+                style={styles.submitButton}
+              />
+            </View>
 
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>Don't have an account? </Text>
@@ -173,6 +173,7 @@ const styles = StyleSheet.create({
   },
   form: {
     flex: 1,
+    justifyContent: 'space-between',
   },
   passwordContainer: {
     width: '100%',
@@ -197,8 +198,11 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: '600',
   },
+  buttonContainer: {
+    marginTop: 'auto',
+    paddingTop: Spacing.xl,
+  },
   submitButton: {
-    marginTop: Spacing.md,
     marginBottom: Spacing.lg,
   },
   signupContainer: {

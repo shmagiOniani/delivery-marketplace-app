@@ -74,10 +74,34 @@ export const orderStep4Schema = z.object({
   scheduled_pickup: z.string().optional(),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+});
+
+export const resetPasswordSchema = z.object({
+  password: z
+    .string()
+    .min(1, 'Password is required')
+    .min(6, 'Password must be at least 6 characters')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+    ),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+  token: z.string().optional(), // Optional - required for email reset, not needed if authenticated
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ['confirmPassword'],
+});
+
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type SignupFormData = z.infer<typeof signupSchema>;
 export type OrderStep1FormData = z.infer<typeof orderStep1Schema>;
 export type OrderStep2FormData = z.infer<typeof orderStep2Schema>;
 export type OrderStep3FormData = z.infer<typeof orderStep3Schema>;
 export type OrderStep4FormData = z.infer<typeof orderStep4Schema>;
-
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;

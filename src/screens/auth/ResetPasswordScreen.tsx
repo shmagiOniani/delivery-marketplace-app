@@ -11,8 +11,11 @@ import {
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSignupMutation } from '@/hooks/mutations/useAuthMutations';
-import { signupSchema, type SignupFormData } from '@/lib/validation/schemas';
+import { useResetPasswordMutation } from '@/hooks/mutations/useResetPasswordMutation';
+import {
+  resetPasswordSchema,
+  type ResetPasswordFormData,
+} from '@/lib/validation/schemas';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/constants/Colors';
@@ -21,30 +24,34 @@ import { Spacing } from '@/constants/Spacing';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import type { AuthScreenProps } from '@/types/navigation';
 
-export const SignupScreen: React.FC<AuthScreenProps<'Signup'>> = ({
-  navigation,
-}) => {
+export const ResetPasswordScreen: React.FC<
+  AuthScreenProps<'ResetPassword'>
+> = ({ navigation, route }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const signupMutation = useSignupMutation();
+  const resetPasswordMutation = useResetPasswordMutation();
+
+  // Get token from route params if available (from email link)
+  const token = route.params?.token;
 
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignupFormData>({
-    resolver: zodResolver(signupSchema),
+  } = useForm<ResetPasswordFormData>({
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      email: '',
       password: '',
       confirmPassword: '',
-      full_name: '',
-      role: 'customer',
+      token: token,
     },
   });
 
-  const onSubmit = async (data: SignupFormData) => {
-    signupMutation.mutate(data);
+  const onSubmit = async (data: ResetPasswordFormData) => {
+    resetPasswordMutation.mutate({
+      password: data.password,
+      token: data.token,
+    });
   };
 
   return (
@@ -58,61 +65,30 @@ export const SignupScreen: React.FC<AuthScreenProps<'Signup'>> = ({
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Icon name="arrow-back" size={24} color={Colors.text.primary} />
+          </TouchableOpacity>
+
           <View style={styles.header}>
-            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.title}>Reset Password</Text>
             <Text style={styles.subtitle}>
-              Sign up to start using Carryo
+              Enter your new password below. Make sure it's at least 6 characters
+              with uppercase, lowercase, and a number.
             </Text>
           </View>
 
           <View style={styles.form}>
             <Controller
               control={control}
-              name="full_name"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Full Name (Optional)"
-                  placeholder="Enter your full name"
-                  value={value || ''}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  error={errors.full_name?.message}
-                  icon="person"
-                  autoCapitalize="words"
-                  autoComplete="name"
-                  editable={!signupMutation.isPending}
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Email"
-                  placeholder="Enter your email"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  error={errors.email?.message}
-                  icon="mail"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  editable={!signupMutation.isPending}
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
               name="password"
               render={({ field: { onChange, onBlur, value } }) => (
                 <View style={styles.passwordContainer}>
                   <Input
-                    label="Password"
-                    placeholder="Enter your password"
+                    label="New Password"
+                    placeholder="Enter your new password"
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -121,7 +97,7 @@ export const SignupScreen: React.FC<AuthScreenProps<'Signup'>> = ({
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
                     autoComplete="password-new"
-                    editable={!signupMutation.isPending}
+                    editable={!resetPasswordMutation.isPending}
                     style={styles.passwordInput}
                   />
                   <TouchableOpacity
@@ -145,8 +121,8 @@ export const SignupScreen: React.FC<AuthScreenProps<'Signup'>> = ({
               render={({ field: { onChange, onBlur, value } }) => (
                 <View style={styles.passwordContainer}>
                   <Input
-                    label="Confirm Password"
-                    placeholder="Confirm your password"
+                    label="Confirm New Password"
+                    placeholder="Confirm your new password"
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -155,7 +131,7 @@ export const SignupScreen: React.FC<AuthScreenProps<'Signup'>> = ({
                     secureTextEntry={!showConfirmPassword}
                     autoCapitalize="none"
                     autoComplete="password-new"
-                    editable={!signupMutation.isPending}
+                    editable={!resetPasswordMutation.isPending}
                     style={styles.passwordInput}
                   />
                   <TouchableOpacity
@@ -180,68 +156,21 @@ export const SignupScreen: React.FC<AuthScreenProps<'Signup'>> = ({
               </Text>
             </View>
 
-            <Controller
-              control={control}
-              name="role"
-              render={({ field: { onChange, value } }) => (
-                <View style={styles.roleContainer}>
-                  <Text style={styles.roleLabel}>I want to:</Text>
-                  <View style={styles.roleButtons}>
-                    <TouchableOpacity
-                      style={[
-                        styles.roleButton,
-                        value === 'customer' && styles.roleButtonActive,
-                      ]}
-                      onPress={() => onChange('customer')}
-                      disabled={signupMutation.isPending}
-                    >
-                      <Text
-                        style={[
-                          styles.roleButtonText,
-                          value === 'customer' && styles.roleButtonTextActive,
-                        ]}
-                      >
-                        Order Delivery
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[
-                        styles.roleButton,
-                        value === 'driver' && styles.roleButtonActive,
-                      ]}
-                      onPress={() => onChange('driver')}
-                      disabled={signupMutation.isPending}
-                    >
-                      <Text
-                        style={[
-                          styles.roleButtonText,
-                          value === 'driver' && styles.roleButtonTextActive,
-                        ]}
-                      >
-                        Deliver Orders
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                  {errors.role && (
-                    <Text style={styles.errorText}>{errors.role.message}</Text>
-                  )}
-                </View>
-              )}
-            />
-
-            <Button
-              title="Sign Up"
-              onPress={handleSubmit(onSubmit)}
-              loading={signupMutation.isPending}
-              disabled={signupMutation.isPending}
-              style={styles.submitButton}
-            />
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Reset Password"
+                onPress={handleSubmit(onSubmit)}
+                loading={resetPasswordMutation.isPending}
+                disabled={resetPasswordMutation.isPending}
+                style={styles.submitButton}
+              />
+            </View>
 
             <View style={styles.loginContainer}>
-              <Text style={styles.loginText}>Already have an account? </Text>
+              <Text style={styles.loginText}>Remember your password? </Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Login')}
-                disabled={signupMutation.isPending}
+                disabled={resetPasswordMutation.isPending}
               >
                 <Text style={styles.loginLink}>Sign In</Text>
               </TouchableOpacity>
@@ -262,8 +191,13 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: Spacing.lg,
   },
+  backButton: {
+    marginTop: Spacing.md,
+    marginBottom: Spacing.md,
+    alignSelf: 'flex-start',
+  },
   header: {
-    marginTop: Spacing.xxl,
+    marginTop: Spacing.xl,
     marginBottom: Spacing.xl,
   },
   title: {
@@ -274,9 +208,11 @@ const styles = StyleSheet.create({
   subtitle: {
     ...Typography.body,
     color: Colors.text.secondary,
+    lineHeight: 22,
   },
   form: {
     flex: 1,
+    justifyContent: 'space-between',
   },
   passwordContainer: {
     width: '100%',
@@ -301,8 +237,11 @@ const styles = StyleSheet.create({
     color: Colors.text.light,
     lineHeight: 16,
   },
+  buttonContainer: {
+    marginTop: 'auto',
+    paddingTop: Spacing.xl,
+  },
   submitButton: {
-    marginTop: Spacing.md,
     marginBottom: Spacing.lg,
   },
   loginContainer: {
@@ -319,44 +258,5 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: '600',
   },
-  roleContainer: {
-    marginBottom: Spacing.md,
-  },
-  roleLabel: {
-    ...Typography.body,
-    color: Colors.text.primary,
-    marginBottom: Spacing.sm,
-    fontWeight: '600',
-  },
-  roleButtons: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  roleButton: {
-    flex: 1,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    backgroundColor: Colors.white,
-    alignItems: 'center',
-  },
-  roleButtonActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary + '10',
-  },
-  roleButtonText: {
-    ...Typography.body,
-    color: Colors.text.secondary,
-    fontWeight: '600',
-  },
-  roleButtonTextActive: {
-    color: Colors.primary,
-  },
-  errorText: {
-    ...Typography.tiny,
-    color: Colors.error,
-    marginTop: Spacing.xs,
-  },
 });
+
