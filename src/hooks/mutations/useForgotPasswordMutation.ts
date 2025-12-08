@@ -9,8 +9,9 @@ interface ForgotPasswordResponse {
 export const useForgotPasswordMutation = () => {
   return useMutation({
     mutationFn: async (email: string) => {
+        console.log("ema", email)
       const response = await apiClient.post<ForgotPasswordResponse>(
-        '/api/auth/forgot-password',
+        '/auth/forgot-password',
         { email }
       );
       return response;
@@ -21,6 +22,7 @@ export const useForgotPasswordMutation = () => {
       );
     },
     onError: (error) => {
+        console.log(error)
       showErrorAlert(error, 'Failed to send reset email');
     },
   });

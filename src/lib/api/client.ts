@@ -8,7 +8,7 @@ class ApiClient {
 
   constructor() {
     this.client = axios.create({
-      baseURL: API_BASE_URL || 'https://carryo.ge/api',
+      baseURL: 'https://carryo.ge/api',
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ class ApiClient {
             const tokens = await secureStorage.getTokens();
             if (tokens.refreshToken) {
               const response = await axios.post(
-                `${API_BASE_URL || 'https://your-domain.com/api'}/auth/refresh`,
+                `${API_BASE_URL || 'https://carryo.ge/api'}/auth/refresh`,
                 {
                   refresh_token: tokens.refreshToken,
                 }
