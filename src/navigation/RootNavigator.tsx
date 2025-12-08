@@ -29,12 +29,14 @@ export const RootNavigator = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!isAuthenticated ? (
+        {!isAuthenticated || !user ? (
           <Stack.Screen name="Auth" component={AuthNavigator} />
-        ) : user?.role === 'customer' ? (
+        ) : user.role === 'customer' ? (
           <Stack.Screen name="Customer" component={CustomerNavigator} />
-        ) : (
+        ) : user.role === 'driver' ? (
           <Stack.Screen name="Driver" component={DriverNavigator} />
+        ) : (
+          <Stack.Screen name="Auth" component={AuthNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

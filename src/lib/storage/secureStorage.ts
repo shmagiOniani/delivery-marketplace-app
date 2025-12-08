@@ -1,7 +1,10 @@
 import * as Keychain from 'react-native-keychain';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { User } from '@/types';
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
+const USER_DATA_KEY = 'user_data';
 
 export const secureStorage = {
   async setAccessToken(token: string): Promise<void> {
@@ -67,6 +70,35 @@ export const secureStorage = {
 
   async clearTokens(): Promise<void> {
     await Keychain.resetGenericPassword();
+  },
+
+  async setUser(user: User): Promise<void> {
+    try {
+      await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
+    } catch (error) {
+      console.error('Failed to save user data:', error);
+    }
+  },
+
+  async getUser(): Promise<User | null> {
+    try {
+      const userData = await AsyncStorage.getItem(USER_DATA_KEY);
+      if (userData) {
+        return JSON.parse(userData) as User;
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to get user data:', error);
+      return null;
+    }
+  },
+
+  async clearUser(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(USER_DATA_KEY);
+    } catch (error) {
+      console.error('Failed to clear user data:', error);
+    }
   },
 };
 

@@ -33,6 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   login: async (session: Session) => {
     await secureStorage.setTokens(session.access_token, session.refresh_token);
+    await secureStorage.setUser(session.user);
     set({
       user: session.user,
       session,
@@ -42,6 +43,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     await secureStorage.clearTokens();
+    await secureStorage.clearUser();
     set({
       user: null,
       session: null,
@@ -53,7 +55,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const tokens = await secureStorage.getTokens();
       if (tokens.accessToken && tokens.refreshToken) {
-        set({ isLoading: false });
+        // Try to get stored user data
+        try {
+          const storedUser = await secureStorage.getUser();
+          if (storedUser) {
+            set({
+              user: storedUser,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+            return;
+          }
+        } catch (e) {
+          // User data not found, continue
+        }
+        // If no user data, set loading to false but keep user as null
+        // The app will show auth screen if user is null
+        set({ isLoading: false, isAuthenticated: false });
       } else {
         set({ isLoading: false, isAuthenticated: false });
       }
