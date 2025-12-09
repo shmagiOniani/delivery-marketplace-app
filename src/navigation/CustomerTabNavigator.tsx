@@ -31,15 +31,15 @@ const TabBarBackground = () => {
   return (
     <View style={styles.tabBarBackground}>
       <Svg width={SCREEN_WIDTH} height={height} style={styles.svg}>
-        <Path
+      <Path
           d={`
             M 0,20
             Q 0,0 20,0
             L ${SCREEN_WIDTH / 2 - circleWidth / 2},0
-            Q ${SCREEN_WIDTH / 2 - circleWidth / 2 + 5},0 ${SCREEN_WIDTH / 2 - circleWidth / 2 + 10},5
-            C ${SCREEN_WIDTH / 2 - circleWidth / 2 + 20},15 ${SCREEN_WIDTH / 2 - 25},${circleRadius - 5} ${SCREEN_WIDTH / 2},${circleRadius}
-            C ${SCREEN_WIDTH / 2 + 25},${circleRadius - 5} ${SCREEN_WIDTH / 2 + circleWidth / 2 - 20},15 ${SCREEN_WIDTH / 2 + circleWidth / 2 - 10},5
-            Q ${SCREEN_WIDTH / 2 + circleWidth / 2 - 5},0 ${SCREEN_WIDTH / 2 + circleWidth / 2},0
+            C ${SCREEN_WIDTH / 2 - circleWidth / 2},0 ${SCREEN_WIDTH / 2 - circleWidth / 2 + 10},3 ${SCREEN_WIDTH / 2 - circleWidth / 2 + 15},8
+            C ${SCREEN_WIDTH / 2 - circleWidth / 2 + 25},20 ${SCREEN_WIDTH / 2 - 30},${circleRadius - 8} ${SCREEN_WIDTH / 2},${circleRadius}
+            C ${SCREEN_WIDTH / 2 + 30},${circleRadius - 8} ${SCREEN_WIDTH / 2 + circleWidth / 2 - 25},20 ${SCREEN_WIDTH / 2 + circleWidth / 2 - 15},8
+            C ${SCREEN_WIDTH / 2 + circleWidth / 2 - 10},3 ${SCREEN_WIDTH / 2 + circleWidth / 2},0 ${SCREEN_WIDTH / 2 + circleWidth / 2},0
             L ${SCREEN_WIDTH - 20},0
             Q ${SCREEN_WIDTH},0 ${SCREEN_WIDTH},20
             L ${SCREEN_WIDTH},${height}
