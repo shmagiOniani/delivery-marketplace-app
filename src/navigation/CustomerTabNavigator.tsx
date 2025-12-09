@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import type { CustomerTabParamList } from '@/types/navigation';
 import { Colors } from '@/constants/Colors';
@@ -10,11 +11,44 @@ import { OrdersListScreen } from '@/screens/customer/OrdersListScreen';
 import { ProfileScreen } from '@/screens/shared/ProfileScreen';
 import { MessagesListScreen } from '@/screens/customer/MessagesListScreen';
 import { useNavigation } from '@react-navigation/native';
+import { Dimensions } from 'react-native';
 
 const Tab = createBottomTabNavigator<CustomerTabParamList>();
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const CreateButtonScreen = () => {
   return null;
+};
+
+// Custom Tab Bar Background with Concave Cutout
+const TabBarBackground = () => {
+  const height = 70;
+  const circleRadius = 40;
+  const circleWidth = 100;
+  
+  return (
+    <View style={styles.tabBarBackground}>
+      <Svg width={SCREEN_WIDTH} height={height} style={styles.svg}>
+        <Path
+          d={`
+            M 0,20
+            Q 0,0 20,0
+            L ${SCREEN_WIDTH / 2 - circleWidth / 2},0
+            Q ${SCREEN_WIDTH / 2 - circleWidth / 2 + 10},0 ${SCREEN_WIDTH / 2 - circleWidth / 2 + 15},10
+            Q ${SCREEN_WIDTH / 2 - 10},${circleRadius} ${SCREEN_WIDTH / 2},${circleRadius}
+            Q ${SCREEN_WIDTH / 2 + 10},${circleRadius} ${SCREEN_WIDTH / 2 + circleWidth / 2 - 15},10
+            Q ${SCREEN_WIDTH / 2 + circleWidth / 2 - 10},0 ${SCREEN_WIDTH / 2 + circleWidth / 2},0
+            L ${SCREEN_WIDTH - 20},0
+            Q ${SCREEN_WIDTH},0 ${SCREEN_WIDTH},20
+            L ${SCREEN_WIDTH},${height}
+            L 0,${height}
+            Z
+          `}
+          fill={Colors.white}
+        />
+      </Svg>
+    </View>
+  );
 };
 
 export const CustomerTabNavigator = () => {
@@ -23,29 +57,24 @@ export const CustomerTabNavigator = () => {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: Colors.darkBlue,
-        tabBarInactiveTintColor: Colors.text.light,
+        tabBarInactiveTintColor: '#999',
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '600',
-          marginTop: 4,
+          fontWeight: '500',
+          marginTop: 2,
         },
         tabBarStyle: {
           height: 70,
-          paddingBottom: 8,
-          paddingTop: 8,
-          backgroundColor: Colors.white,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
+          paddingBottom: 5,
+          paddingTop: 5,
+          backgroundColor: 'transparent',
           borderTopWidth: 0,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -3 },
-          shadowOpacity: 0.15,
-          shadowRadius: 8,
-          elevation: 10,
           position: 'absolute',
+          elevation: 0,
         },
+        tabBarBackground: () => <TabBarBackground />,
         tabBarIconStyle: {
-          marginTop: 4,
+          marginTop: 2,
         },
       }}
     >
@@ -57,8 +86,8 @@ export const CustomerTabNavigator = () => {
           tabBarIcon: ({ focused, size }) => (
             <Icon 
               name="home" 
-              size={26} 
-              color={focused ? Colors.darkBlue : Colors.text.light} 
+              size={24} 
+              color={focused ? Colors.darkBlue : '#999'} 
             />
           ),
         }}
@@ -71,8 +100,8 @@ export const CustomerTabNavigator = () => {
           tabBarIcon: ({ focused, size }) => (
             <Icon 
               name="receipt-long" 
-              size={26} 
-              color={focused ? Colors.darkBlue : Colors.text.light} 
+              size={24} 
+              color={focused ? Colors.darkBlue : '#999'} 
             />
           ),
         }}
@@ -81,12 +110,7 @@ export const CustomerTabNavigator = () => {
         name="Create"
         component={CreateButtonScreen}
         options={{
-          tabBarLabel: 'Create/Add',
-          tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: '600',
-            marginTop: 8,
-          },
+          tabBarLabel: '',
           tabBarButton: (props) => {
             const navigation = useNavigation();
             const cleanProps = Object.fromEntries(
@@ -97,20 +121,23 @@ export const CustomerTabNavigator = () => {
             ) as React.ComponentProps<typeof TouchableOpacity>;
             
             return (
-              <TouchableOpacity
-                {...cleanProps}
-                style={styles.createButtonWrapper}
-                onPress={() => {
-                  navigation.navigate('Customer', {
-                    screen: 'NewOrderStep1',
-                  } as any);
-                }}
-              >
-                <View style={styles.createButton}>
-                  <Icon name="add" size={34} color={Colors.dark} />
-                </View>
+              <View style={styles.createButtonContainer}>
+                <TouchableOpacity
+                  {...cleanProps}
+                  style={styles.createButtonTouchable}
+                  onPress={() => {
+                    navigation.navigate('Customer', {
+                      screen: 'NewOrderStep1',
+                    } as any);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.createButton}>
+                    <Icon name="add" size={32} color="#000" />
+                  </View>
+                </TouchableOpacity>
                 <Text style={styles.createLabel}>Create/Add</Text>
-              </TouchableOpacity>
+              </View>
             );
           },
         }}
@@ -124,8 +151,8 @@ export const CustomerTabNavigator = () => {
             <View style={styles.messageIconContainer}>
               <Icon 
                 name="chat-bubble-outline" 
-                size={26} 
-                color={focused ? Colors.darkBlue : Colors.text.light} 
+                size={24} 
+                color={focused ? Colors.darkBlue : '#999'} 
               />
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>1</Text>
@@ -142,8 +169,8 @@ export const CustomerTabNavigator = () => {
           tabBarIcon: ({ focused, size }) => (
             <Icon 
               name="person-outline" 
-              size={26} 
-              color={focused ? Colors.darkBlue : Colors.text.light} 
+              size={24} 
+              color={focused ? Colors.darkBlue : '#999'} 
             />
           ),
         }}
@@ -153,37 +180,59 @@ export const CustomerTabNavigator = () => {
 };
 
 const styles = StyleSheet.create({
-  createButtonWrapper: {
+  tabBarBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  svg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  createButtonContainer: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    top: -8,
+    justifyContent: 'flex-start',
+    top: -20,
+  },
+  createButtonTouchable: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   createButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.25,
-    shadowRadius: 6,
+    shadowRadius: 5,
     elevation: 8,
   },
   createLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text.primary,
-    marginTop: 6,
+    marginTop: 2,
   },
   messageIconContainer: {
     position: 'relative',
   },
   badge: {
     position: 'absolute',
-    top: -4,
+    top: -5,
     right: -10,
     minWidth: 18,
     height: 18,
@@ -191,7 +240,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.error,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 5,
+    paddingHorizontal: 4,
   },
   badgeText: {
     color: Colors.white,
