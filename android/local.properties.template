@@ -1,0 +1,19 @@
+# This is a template file. Copy this to local.properties and set your Android SDK path.
+# On macOS, the SDK is usually located at:
+# sdk.dir=/Users/YOUR_USERNAME/Library/Android/sdk
+#
+# Or if you have Android Studio installed:
+# sdk.dir=/Users/YOUR_USERNAME/Library/Android/sdk
+#
+# To find your SDK location:
+# 1. Open Android Studio
+# 2. Go to Preferences → Appearance & Behavior → System Settings → Android SDK
+# 3. Copy the "Android SDK Location" path
+#
+# Or run: echo $ANDROID_HOME
+#
+# Example (replace YOUR_USERNAME with your actual username):
+# sdk.dir=/Users/natiatabatadze/Library/Android/sdk
+
+sdk.dir=/Users/YOUR_USERNAME/Library/Android/sdk
+
