@@ -151,8 +151,8 @@ export const CustomerTabNavigator = () => {
           tabBarLabel: 'Messages',
           tabBarIcon: ({ focused, size }) => (
             <View style={styles.messageIconContainer}>
-              <IconCommunity 
-                name="bell-outline" 
+              <Icon 
+                name="chat-bubble-outline" 
                 size={26} 
                 color={focused ? Colors.darkBlue : '#999'} 
               />

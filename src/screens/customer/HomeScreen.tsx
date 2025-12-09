@@ -232,9 +232,9 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
                   style={styles.activityAvatarImage}
                 />
               ) : (
-                <View style={styles.activityAvatar}>
-                  <Icon name="person" size={20} color={Colors.white} />
-                </View>
+              <View style={styles.activityAvatar}>
+                <Icon name="person" size={20} color={Colors.white} />
+              </View>
               )}
               <View style={styles.activityContent}>
                 <Text style={styles.activityText}>
