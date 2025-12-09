@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    top: -20,
+    top: -25,
   },
   createButtonTouchable: {
     alignItems: 'center',
@@ -212,11 +212,12 @@ const styles = StyleSheet.create({
   createButton: {
     width: 60,
     height: 60,
+
     borderRadius: 30,
     backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.25,
