@@ -9,9 +9,11 @@ Class org.gradle.jvm.toolchain.JvmVendorSpec does not have member field 'org.gra
 Gradle 9.0.0 has compatibility issues with React Native 0.82.1, particularly with JVM toolchain vendor specifications.
 
 ## Solution Applied
-Downgraded Gradle from 9.0.0 to 8.6 (more stable with React Native 0.82.1)
+Updated Gradle from 9.0.0 to 8.13 (required minimum for Android Gradle Plugin, compatible with React Native 0.82.1)
 
 **File Changed**: `android/gradle/wrapper/gradle-wrapper.properties`
+
+**Note**: The Android Gradle Plugin requires Gradle 8.13 minimum. This version should resolve the IBM_SEMERU issue while meeting the minimum requirement.
 
 ## Next Steps
 
