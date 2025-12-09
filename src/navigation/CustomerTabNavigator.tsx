@@ -3,6 +3,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import IconCommunity from 'react-native-vector-icons/MaterialCommunityIcons';
+import Feather from 'react-native-vector-icons/Feather';
 import type { CustomerTabParamList } from '@/types/navigation';
 import { Colors } from '@/constants/Colors';
 import { Spacing } from '@/constants/Spacing';
@@ -86,7 +88,7 @@ export const CustomerTabNavigator = () => {
           tabBarIcon: ({ focused, size }) => (
             <Icon 
               name="home" 
-              size={24} 
+              size={26} 
               color={focused ? Colors.darkBlue : '#999'} 
             />
           ),
@@ -98,8 +100,8 @@ export const CustomerTabNavigator = () => {
         options={{
           tabBarLabel: 'Orders',
           tabBarIcon: ({ focused, size }) => (
-            <Icon 
-              name="receipt-long" 
+            <Feather 
+              name="file-text" 
               size={24} 
               color={focused ? Colors.darkBlue : '#999'} 
             />
@@ -149,9 +151,9 @@ export const CustomerTabNavigator = () => {
           tabBarLabel: 'Messages',
           tabBarIcon: ({ focused, size }) => (
             <View style={styles.messageIconContainer}>
-              <Icon 
-                name="chat-bubble-outline" 
-                size={24} 
+              <IconCommunity 
+                name="bell-outline" 
+                size={26} 
                 color={focused ? Colors.darkBlue : '#999'} 
               />
               <View style={styles.badge}>
@@ -167,8 +169,8 @@ export const CustomerTabNavigator = () => {
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ focused, size }) => (
-            <Icon 
-              name="person-outline" 
+            <Feather 
+              name="user" 
               size={24} 
               color={focused ? Colors.darkBlue : '#999'} 
             />
