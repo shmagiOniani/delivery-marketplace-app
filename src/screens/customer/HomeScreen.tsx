@@ -76,6 +76,7 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
       action: 'Delivered',
       timeAgo: '2 min ago',
       icon: 'local-shipping',
+      avatarUrl: null,
     },
     {
       id: '2',
@@ -83,6 +84,7 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
       action: 'Picked up',
       timeAgo: '15 min ago',
       icon: 'phone',
+      avatarUrl: null,
     },
   ];
 
@@ -139,7 +141,7 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
             activeOpacity={0.7}
           >
             <View style={styles.actionIconContainer}>
-              <Icon name="add" size={28} color={Colors.dark} />
+              <Icon name="add" size={32} color={Colors.white} />
             </View>
             <Text style={styles.actionLabel}>New Order</Text>
           </TouchableOpacity>
@@ -150,7 +152,7 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
             activeOpacity={0.7}
           >
             <View style={styles.actionIconContainer}>
-              <Icon name="location-on" size={28} color={Colors.dark} />
+              <Icon name="place" size={32} color={Colors.white} />
             </View>
             <Text style={styles.actionLabel}>Track</Text>
           </TouchableOpacity>
@@ -161,7 +163,7 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
             activeOpacity={0.7}
           >
             <View style={styles.actionIconContainer}>
-              <Icon name="history" size={28} color={Colors.dark} />
+              <Icon name="schedule" size={32} color={Colors.white} />
             </View>
             <Text style={styles.actionLabel}>History</Text>
           </TouchableOpacity>
@@ -224,9 +226,16 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
 
           {recentActivity.map((activity) => (
             <View key={activity.id} style={styles.activityItem}>
-              <View style={styles.activityAvatar}>
-                <Icon name="person" size={20} color={Colors.white} />
-              </View>
+              {activity.avatarUrl ? (
+                <Image
+                  source={{ uri: activity.avatarUrl }}
+                  style={styles.activityAvatarImage}
+                />
+              ) : (
+                <View style={styles.activityAvatar}>
+                  <Icon name="person" size={20} color={Colors.white} />
+                </View>
+              )}
               <View style={styles.activityContent}>
                 <Text style={styles.activityText}>
                   {activity.courierName}
@@ -236,7 +245,7 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
                 </Text>
               </View>
               <Icon
-                name={activity.icon as any}
+                name={activity.icon === 'local-shipping' ? 'inventory-2' : 'phone'}
                 size={24}
                 color={Colors.text.secondary}
               />
@@ -258,6 +267,25 @@ const HorizontalOrderCard: React.FC<HorizontalOrderCardProps> = ({
   order,
   onPress,
 }) => {
+  // Format order number as ORD-XXXX
+  const orderNumber = `ORD-${order.id.slice(-4).toUpperCase()}`;
+  
+  // Calculate progress based on status
+  const getProgress = () => {
+    switch (order.status) {
+      case 'pending':
+        return '20%';
+      case 'accepted':
+        return '40%';
+      case 'in_transit':
+        return '70%';
+      case 'delivered':
+        return '100%';
+      default:
+        return '0%';
+    }
+  };
+
   return (
     <TouchableOpacity
       style={styles.horizontalCard}
@@ -267,12 +295,12 @@ const HorizontalOrderCard: React.FC<HorizontalOrderCardProps> = ({
       <View style={styles.horizontalCardContent}>
         <View style={styles.horizontalCardHeader}>
           <Text style={styles.horizontalCardTitle}>
-            Order #{order.id.slice(-4).toUpperCase()}
+            Order #{orderNumber}
           </Text>
           <StatusBadge status={order.status} />
         </View>
         <View style={styles.horizontalCardBody}>
-          <Icon name="inventory-2" size={24} color={Colors.primary} />
+          <Icon name="inventory-2" size={28} color={Colors.orange} />
           <View style={styles.horizontalCardPrice}>
             <Text style={styles.horizontalCardPriceText}>
               ${order.customer_price.toFixed(2)}
@@ -280,7 +308,7 @@ const HorizontalOrderCard: React.FC<HorizontalOrderCardProps> = ({
           </View>
         </View>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: '60%' }]} />
+          <View style={[styles.progressFill, { width: getProgress() }]} />
         </View>
       </View>
     </TouchableOpacity>
@@ -348,13 +376,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionIconContainer: {
-    width: 70,
-    height: 70,
+    width: '100%',
+    minHeight: 80,
     borderRadius: 16,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.orange,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.sm,
+    paddingVertical: Spacing.md,
   },
   actionLabel: {
     ...Typography.small,
@@ -378,8 +407,8 @@ const styles = StyleSheet.create({
   },
   seeAll: {
     ...Typography.small,
-    color: Colors.primary,
-    fontWeight: '600',
+    color: Colors.text.secondary,
+    fontWeight: '500',
   },
   horizontalList: {
     paddingRight: Spacing.md,
@@ -412,7 +441,8 @@ const styles = StyleSheet.create({
   horizontalCardBody: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
+    gap: Spacing.sm,
   },
   horizontalCardPrice: {
     marginLeft: Spacing.sm,
@@ -430,7 +460,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.orange,
     borderRadius: 2,
   },
   activityItem: {
@@ -444,9 +474,15 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.orange,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  activityAvatarImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     marginRight: Spacing.md,
   },
   activityContent: {

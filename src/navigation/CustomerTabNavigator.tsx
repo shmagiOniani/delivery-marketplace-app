@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import type { CustomerTabParamList } from '@/types/navigation';
 import { Colors } from '@/constants/Colors';
@@ -23,7 +23,7 @@ export const CustomerTabNavigator = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors.primary,
+        tabBarActiveTintColor: Colors.darkBlue,
         tabBarInactiveTintColor: Colors.gray,
         tabBarStyle: {
           borderTopWidth: 1,
@@ -40,8 +40,12 @@ export const CustomerTabNavigator = () => {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <Icon name="home" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Icon 
+              name="home" 
+              size={size} 
+              color={focused ? Colors.darkBlue : Colors.gray} 
+            />
           ),
         }}
       />
@@ -51,7 +55,7 @@ export const CustomerTabNavigator = () => {
         options={{
           tabBarLabel: 'Orders',
           tabBarIcon: ({ color, size }) => (
-            <Icon name="list" size={size} color={color} />
+            <Icon name="description" size={size} color={color} />
           ),
         }}
       />
@@ -73,7 +77,7 @@ export const CustomerTabNavigator = () => {
                 }}
               >
                 <View style={styles.createButtonInner}>
-                  <Icon name="add" size={32} color={Colors.dark} />
+                  <Icon name="add" size={32} color={Colors.white} />
                 </View>
               </TouchableOpacity>
             );
@@ -86,9 +90,11 @@ export const CustomerTabNavigator = () => {
         options={{
           tabBarLabel: 'Messages',
           tabBarIcon: ({ color, size }) => (
-            <View>
-              <Icon name="message" size={size} color={color} />
-              <View style={styles.badge} />
+            <View style={styles.messageIconContainer}>
+              <Icon name="chat-bubble-outline" size={size} color={color} />
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>1</Text>
+              </View>
             </View>
           ),
         }}
@@ -117,7 +123,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.orange,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -126,14 +132,25 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
+  messageIconContainer: {
+    position: 'relative',
+  },
   badge: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: -6,
+    right: -8,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
     backgroundColor: Colors.error,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: Colors.white,
+    fontSize: 10,
+    fontWeight: '700',
   },
 });
 
