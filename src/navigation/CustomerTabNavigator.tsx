@@ -24,14 +24,25 @@ export const CustomerTabNavigator = () => {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: Colors.darkBlue,
-        tabBarInactiveTintColor: Colors.gray,
+        tabBarInactiveTintColor: Colors.text.light,
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '500',
+          color: Colors.text.primary,
+        },
         tabBarStyle: {
-          borderTopWidth: 1,
-          borderTopColor: Colors.border,
+          borderTopWidth: 0,
           paddingTop: 8,
           paddingBottom: 8,
           height: 60,
           backgroundColor: Colors.white,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 5,
         },
       }}
     >
@@ -40,11 +51,11 @@ export const CustomerTabNavigator = () => {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ focused, size }) => (
             <Icon 
               name="home" 
               size={size} 
-              color={focused ? Colors.darkBlue : Colors.gray} 
+              color={focused ? Colors.darkBlue : Colors.text.light} 
             />
           ),
         }}
@@ -54,8 +65,12 @@ export const CustomerTabNavigator = () => {
         component={OrdersListScreen}
         options={{
           tabBarLabel: 'Orders',
-          tabBarIcon: ({ color, size }) => (
-            <Icon name="description" size={size} color={color} />
+          tabBarIcon: ({ focused, size }) => (
+            <Icon 
+              name="description" 
+              size={size} 
+              color={focused ? Colors.darkBlue : Colors.text.light} 
+            />
           ),
         }}
       />
@@ -66,20 +81,30 @@ export const CustomerTabNavigator = () => {
           tabBarLabel: '',
           tabBarButton: (props) => {
             const navigation = useNavigation();
+            // Convert null values to undefined for TouchableOpacity compatibility
+            const cleanProps = Object.fromEntries(
+              Object.entries(props).map(([key, value]) => [
+                key,
+                value === null ? undefined : value,
+              ])
+            ) as React.ComponentProps<typeof TouchableOpacity>;
             return (
-              <TouchableOpacity
-                {...props}
-                style={styles.createButton}
-                onPress={() => {
-                  navigation.navigate('Customer', {
-                    screen: 'NewOrderStep1',
-                  } as any);
-                }}
-              >
-                <View style={styles.createButtonInner}>
-                  <Icon name="add" size={32} color={Colors.white} />
-                </View>
-              </TouchableOpacity>
+              <View style={styles.createButtonContainer}>
+                <TouchableOpacity
+                  {...cleanProps}
+                  style={styles.createButton}
+                  onPress={() => {
+                    navigation.navigate('Customer', {
+                      screen: 'NewOrderStep1',
+                    } as any);
+                  }}
+                >
+                  <View style={styles.createButtonInner}>
+                    <Icon name="add" size={32} color={Colors.dark} />
+                  </View>
+                </TouchableOpacity>
+                <Text style={styles.createButtonLabel}>Create/Add</Text>
+              </View>
             );
           },
         }}
@@ -89,9 +114,13 @@ export const CustomerTabNavigator = () => {
         component={MessagesListScreen}
         options={{
           tabBarLabel: 'Messages',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ focused, size }) => (
             <View style={styles.messageIconContainer}>
-              <Icon name="chat-bubble-outline" size={size} color={color} />
+              <Icon 
+                name="chat-bubble-outline" 
+                size={size} 
+                color={focused ? Colors.darkBlue : Colors.text.light} 
+              />
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>1</Text>
               </View>
@@ -104,8 +133,12 @@ export const CustomerTabNavigator = () => {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({ color, size }) => (
-            <Icon name="person" size={size} color={color} />
+          tabBarIcon: ({ focused, size }) => (
+            <Icon 
+              name="person-outline" 
+              size={size} 
+              color={focused ? Colors.darkBlue : Colors.text.light} 
+            />
           ),
         }}
       />
@@ -114,16 +147,22 @@ export const CustomerTabNavigator = () => {
 };
 
 const styles = StyleSheet.create({
+  createButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
   createButton: {
     top: -20,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: -20,
   },
   createButtonInner: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Colors.orange,
+    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -131,6 +170,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
+  },
+  createButtonLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.text.primary,
+    marginTop: -12,
   },
   messageIconContainer: {
     position: 'relative',
