@@ -23,8 +23,8 @@ const CreateButtonScreen = () => {
 // Custom Tab Bar Background with Concave Cutout
 const TabBarBackground = () => {
   const height = 70;
-  const circleRadius = 40;
-  const circleWidth = 100;
+  const circleRadius = 45;
+  const circleWidth = 110;
   
   return (
     <View style={styles.tabBarBackground}>
@@ -34,10 +34,10 @@ const TabBarBackground = () => {
             M 0,20
             Q 0,0 20,0
             L ${SCREEN_WIDTH / 2 - circleWidth / 2},0
-            Q ${SCREEN_WIDTH / 2 - circleWidth / 2 + 10},0 ${SCREEN_WIDTH / 2 - circleWidth / 2 + 15},10
-            Q ${SCREEN_WIDTH / 2 - 10},${circleRadius} ${SCREEN_WIDTH / 2},${circleRadius}
-            Q ${SCREEN_WIDTH / 2 + 10},${circleRadius} ${SCREEN_WIDTH / 2 + circleWidth / 2 - 15},10
-            Q ${SCREEN_WIDTH / 2 + circleWidth / 2 - 10},0 ${SCREEN_WIDTH / 2 + circleWidth / 2},0
+            Q ${SCREEN_WIDTH / 2 - circleWidth / 2 + 5},0 ${SCREEN_WIDTH / 2 - circleWidth / 2 + 10},5
+            C ${SCREEN_WIDTH / 2 - circleWidth / 2 + 20},15 ${SCREEN_WIDTH / 2 - 25},${circleRadius - 5} ${SCREEN_WIDTH / 2},${circleRadius}
+            C ${SCREEN_WIDTH / 2 + 25},${circleRadius - 5} ${SCREEN_WIDTH / 2 + circleWidth / 2 - 20},15 ${SCREEN_WIDTH / 2 + circleWidth / 2 - 10},5
+            Q ${SCREEN_WIDTH / 2 + circleWidth / 2 - 5},0 ${SCREEN_WIDTH / 2 + circleWidth / 2},0
             L ${SCREEN_WIDTH - 20},0
             Q ${SCREEN_WIDTH},0 ${SCREEN_WIDTH},20
             L ${SCREEN_WIDTH},${height}
