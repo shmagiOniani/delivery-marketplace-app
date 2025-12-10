@@ -36,8 +36,10 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
     refetch,
     isRefetching,
   } = useJobsQuery({ limit: 10 });
+    
+    console.log(jobsData)
 
-  const activeJobs = jobsData?.data || [];
+  const activeJobs = jobsData || [];
 
   const onRefresh = useCallback(() => {
     refetch();

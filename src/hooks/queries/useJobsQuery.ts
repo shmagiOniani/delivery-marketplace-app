@@ -13,7 +13,7 @@ export const useJobsQuery = (params?: UseJobsQueryParams) => {
   return useQuery({
     queryKey: ['jobs', params?.status, params?.limit, params?.offset],
     queryFn: async () => {
-      const response = await apiClient.get<PaginatedResponse<Job>>('/api/jobs', {
+      const response = await apiClient.get<PaginatedResponse<Job>>('/jobs', {
         params: {
           status: params?.status,
           limit: params?.limit || 20,
