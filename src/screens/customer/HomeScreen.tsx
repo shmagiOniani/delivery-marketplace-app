@@ -136,8 +136,9 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
           >
             <View style={styles.actionIcon}>
               <Icon name="add" size={32} color={Colors.darkBlue} />
+          <Text style={styles.actionLabel}>New Order</Text>
             </View>
-            <Text style={styles.actionLabel}>New Order</Text>
+            
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -147,8 +148,9 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
           >
             <View style={styles.actionIcon}>
               <Icon name="location-on" size={32} color={Colors.darkBlue} />
+          <Text style={styles.actionLabel}>Track</Text>
             </View>
-            <Text style={styles.actionLabel}>Track</Text>
+            
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -158,8 +160,9 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
           >
             <View style={styles.actionIcon}>
               <Icon name="history" size={32} color={Colors.darkBlue} />
+          <Text style={styles.actionLabel}>History</Text>
             </View>
-            <Text style={styles.actionLabel}>History</Text>
+            
           </TouchableOpacity>
         </View>
       </View>
@@ -325,6 +328,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2C3E50',
     paddingHorizontal: 20,
     paddingBottom: 60,
+      
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
@@ -332,10 +336,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 50,
   },
   headerTextContainer: {
     flex: 1,
+      
   },
   appName: {
     fontSize: 32,
@@ -365,7 +370,7 @@ const styles = StyleSheet.create({
   },
   actionsContainer: {
     position: 'absolute',
-    bottom: -40,
+    bottom: -70,
     left: 20,
     right: 20,
     flexDirection: 'row',
@@ -415,6 +420,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+      marginTop: 30,
   },
   sectionTitle: {
     fontSize: 20,
