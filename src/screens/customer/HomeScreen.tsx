@@ -127,7 +127,7 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Positioned Absolutely at Bottom */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             style={styles.actionButton}
@@ -324,13 +324,15 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#2C3E50',
     paddingHorizontal: 20,
-    paddingBottom: 24,
+    paddingBottom: 60,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   headerTextContainer: {
     flex: 1,
@@ -362,8 +364,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionsContainer: {
+    position: 'absolute',
+    bottom: -40,
+    left: 20,
+    right: 20,
     flexDirection: 'row',
     gap: 12,
+    zIndex: 10,
   },
   actionButton: {
     flex: 1,
@@ -382,20 +389,22 @@ const styles = StyleSheet.create({
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 6,
   },
   actionLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
+    backgroundColor: 'transparent',
   },
   scrollView: {
     flex: 1,
   },
   content: {
     padding: 20,
+    paddingTop: 60,
     paddingBottom: 100,
   },
   section: {
