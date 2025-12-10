@@ -94,10 +94,10 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
 
   return (
     <View style={styles.container}>
-      {/* Dark Blue Header */}
+      {/* Dark Blue Header with Avatar */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <View>
+          <View style={styles.headerTextContainer}>
             <Text style={styles.appName}>Carryo</Text>
             <Text style={styles.greeting}>
               გამარჯობა, {user?.full_name?.split(' ')[0] || 'User'}!
@@ -109,6 +109,7 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
                 screen: 'Profile',
               } as any)
             }
+            style={styles.avatarTouchable}
           >
             <View style={styles.avatarContainer}>
               {user?.avatar_url ? (
@@ -118,10 +119,46 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
                 />
               ) : (
                 <View style={styles.avatarPlaceholder}>
-                  <Icon name="person" size={24} color={Colors.white} />
+                  <Icon name="person" size={28} color={Colors.white} />
                 </View>
               )}
             </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Yellow Action Buttons inside header */}
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleNewOrder}
+            activeOpacity={0.7}
+          >
+            <View style={styles.actionIconContainer}>
+              <Icon name="add" size={28} color={Colors.dark} />
+            </View>
+            <Text style={styles.actionLabel}>New Order</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleTrackOrder}
+            activeOpacity={0.7}
+          >
+            <View style={styles.actionIconContainer}>
+              <Icon name="place" size={28} color={Colors.dark} />
+            </View>
+            <Text style={styles.actionLabel}>Track</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleViewHistory}
+            activeOpacity={0.7}
+          >
+            <View style={styles.actionIconContainer}>
+              <Icon name="history" size={28} color={Colors.dark} />
+            </View>
+            <Text style={styles.actionLabel}>History</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -133,41 +170,6 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
           <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
       >
-        {/* Yellow Action Buttons */}
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleNewOrder}
-            activeOpacity={0.7}
-          >
-            <View style={styles.actionIconContainer}>
-              <Icon name="add" size={32} color={Colors.white} />
-            </View>
-            <Text style={styles.actionLabel}>New Order</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleTrackOrder}
-            activeOpacity={0.7}
-          >
-            <View style={styles.actionIconContainer}>
-              <Icon name="place" size={32} color={Colors.white} />
-            </View>
-            <Text style={styles.actionLabel}>Track</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleViewHistory}
-            activeOpacity={0.7}
-          >
-            <View style={styles.actionIconContainer}>
-              <Icon name="schedule" size={32} color={Colors.white} />
-            </View>
-            <Text style={styles.actionLabel}>History</Text>
-          </TouchableOpacity>
-        </View>
 
         {/* Active Orders Section */}
         <View style={styles.section}>
@@ -318,35 +320,48 @@ const HorizontalOrderCard: React.FC<HorizontalOrderCardProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   header: {
     backgroundColor: Colors.darkBlue,
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.lg,
-    paddingHorizontal: Spacing.md,
+    paddingTop: 60,
+    paddingBottom: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.xl,
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   appName: {
-    ...Typography.h2,
+    fontSize: 28,
     color: Colors.white,
     fontWeight: '700',
-    marginBottom: Spacing.xs,
+    marginBottom: 4,
+    letterSpacing: 0.5,
   },
   greeting: {
-    ...Typography.body,
+    fontSize: 15,
     color: Colors.white,
-    opacity: 0.9,
+    opacity: 0.95,
+    fontWeight: '400',
+  },
+  avatarTouchable: {
+    marginLeft: Spacing.md,
   },
   avatarContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     overflow: 'hidden',
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   avatar: {
     width: '100%',
@@ -359,17 +374,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: Spacing.md,
-  },
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: Spacing.xl,
-    gap: Spacing.md,
+    gap: 12,
   },
   actionButton: {
     flex: 1,
@@ -377,19 +385,29 @@ const styles = StyleSheet.create({
   },
   actionIconContainer: {
     width: '100%',
-    minHeight: 80,
+    aspectRatio: 1,
     borderRadius: 16,
-    backgroundColor: Colors.orange,
+    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
-    paddingVertical: Spacing.md,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
   actionLabel: {
-    ...Typography.small,
-    color: Colors.text.primary,
+    fontSize: 13,
+    color: Colors.white,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    padding: Spacing.lg,
   },
   section: {
     marginBottom: Spacing.xl,
@@ -401,12 +419,12 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   sectionTitle: {
-    ...Typography.h3,
+    fontSize: 18,
     color: Colors.text.primary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   seeAll: {
-    ...Typography.small,
+    fontSize: 13,
     color: Colors.text.secondary,
     fontWeight: '500',
   },
@@ -435,7 +453,8 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   horizontalCardTitle: {
-    ...Typography.bodyBold,
+    fontSize: 15,
+    fontWeight: '700',
     color: Colors.text.primary,
   },
   horizontalCardBody: {
@@ -448,7 +467,7 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.sm,
   },
   horizontalCardPriceText: {
-    ...Typography.h3,
+    fontSize: 20,
     color: Colors.text.primary,
     fontWeight: '700',
   },
@@ -489,12 +508,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   activityText: {
-    ...Typography.bodyBold,
+    fontSize: 15,
+    fontWeight: '600',
     color: Colors.text.primary,
     marginBottom: 2,
   },
   activityTime: {
-    ...Typography.small,
+    fontSize: 13,
     color: Colors.text.secondary,
   },
   errorContainer: {
@@ -504,7 +524,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    ...Typography.body,
+    fontSize: 14,
     color: Colors.error,
   },
 });
