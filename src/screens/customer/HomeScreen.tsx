@@ -36,6 +36,8 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
     refetch,
     isRefetching,
   } = useJobsQuery({ limit: 10 });
+    
+    console.log(jobsData)
 
   const activeJobs = jobsData || [];
 
@@ -136,8 +138,9 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
           >
             <View style={styles.actionIcon}>
               <Icon name="add" size={32} color={Colors.darkBlue} />
+          <Text style={styles.actionLabel}>New Order</Text>
             </View>
-            <Text style={styles.actionLabel}>New Order</Text>
+            
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -147,8 +150,9 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
           >
             <View style={styles.actionIcon}>
               <Icon name="location-on" size={32} color={Colors.darkBlue} />
+          <Text style={styles.actionLabel}>Track</Text>
             </View>
-            <Text style={styles.actionLabel}>Track</Text>
+            
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -158,8 +162,9 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
           >
             <View style={styles.actionIcon}>
               <Icon name="history" size={32} color={Colors.darkBlue} />
+          <Text style={styles.actionLabel}>History</Text>
             </View>
-            <Text style={styles.actionLabel}>History</Text>
+            
           </TouchableOpacity>
         </View>
       </View>
@@ -287,43 +292,30 @@ const HorizontalOrderCard: React.FC<HorizontalOrderCardProps> = ({
     }
   };
 
-  // Get the first photo or use default placeholder
-  const getImageSource = () => {
-    if (order.pickup_photos && order.pickup_photos.length > 0) {
-      return { uri: order.pickup_photos[0] };
-    }
-    if (order.delivery_photos && order.delivery_photos.length > 0) {
-      return { uri: order.delivery_photos[0] };
-    }
-    // Default placeholder - can be replaced with a local image
-    return require('@/assets/images/package-placeholder.png');
-  };
-
   return (
     <TouchableOpacity
       style={styles.horizontalCard}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={styles.cardHeader}>
-        <Text style={styles.orderNumber}>Order #{orderNumber}</Text>
-        <StatusBadge status={order.status} />
-      </View>
-      
-      <View style={styles.cardBody}>
-        <View style={styles.imageContainer}>
-          <Image
-            source={getImageSource()}
-            style={styles.packageImage}
-            resizeMode="cover"
-          />
+      <View style={styles.horizontalCardContent}>
+        <View style={styles.horizontalCardHeader}>
+          <Text style={styles.horizontalCardTitle}>
+            Order #{orderNumber}
+          </Text>
+          <StatusBadge status={order.status} />
         </View>
-        
-        <Text style={styles.priceText}>${order.customer_price.toFixed(2)}</Text>
-      </View>
-      
-      <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: getProgress() }]} />
+        <View style={styles.horizontalCardBody}>
+          <Icon name="inventory-2" size={28} color={Colors.orange} />
+          <View style={styles.horizontalCardPrice}>
+            <Text style={styles.horizontalCardPriceText}>
+              ${order.customer_price.toFixed(2)}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressFill, { width: getProgress() }]} />
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -338,6 +330,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2C3E50',
     paddingHorizontal: 20,
     paddingBottom: 60,
+      
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
@@ -349,6 +342,7 @@ const styles = StyleSheet.create({
   },
   headerTextContainer: {
     flex: 1,
+      
   },
   appName: {
     fontSize: 32,
@@ -378,7 +372,7 @@ const styles = StyleSheet.create({
   },
   actionsContainer: {
     position: 'absolute',
-    bottom: -40,
+    bottom: -70,
     left: 20,
     right: 20,
     flexDirection: 'row',
@@ -428,7 +422,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
-    marginTop: 30,
+      marginTop: 30,
   },
   sectionTitle: {
     fontSize: 20,
@@ -444,52 +438,45 @@ const styles = StyleSheet.create({
     paddingRight: 20,
   },
   horizontalCard: {
-    width: 240,
+    width: 280,
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 16,
     padding: 16,
-    marginRight: 16,
-    borderWidth: 2,
-    borderColor: '#FDB022',
+    marginRight: 12,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 12,
-    elevation: 4,
+    elevation: 3,
   },
-  cardHeader: {
+  horizontalCardContent: {
+    flex: 1,
+  },
+  horizontalCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  orderNumber: {
+  horizontalCardTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: '#1A1A1A',
   },
-  cardBody: {
-    marginBottom: 12,
-  },
-  imageContainer: {
-    width: '100%',
-    height: 120,
-    backgroundColor: '#F5F6FA',
-    borderRadius: 12,
-    justifyContent: 'center',
+  horizontalCardBody: {
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
-    overflow: 'hidden',
+    gap: 8,
   },
-  packageImage: {
-    width: '100%',
-    height: '100%',
+  horizontalCardPrice: {
+    marginLeft: 4,
   },
-  priceText: {
-    fontSize: 24,
+  horizontalCardPriceText: {
+    fontSize: 22,
     fontWeight: '700',
     color: '#1A1A1A',
   },
