@@ -21,28 +21,9 @@ export type CustomerTabParamList = {
 export type CustomerStackParamList = {
   CustomerTabs: NavigatorScreenParams<CustomerTabParamList>;
   NewOrderStep1: undefined;
-  NewOrderStep2: {
-    itemType: string;
-  };
-  NewOrderStep3: {
-    itemType: string;
-    pickupLocation: { latitude: number; longitude: number; address: string };
-    deliveryLocation: { latitude: number; longitude: number; address: string };
-    distance: number;
-    duration: number;
-  };
-  NewOrderStep4: {
-    itemType: string;
-    pickupLocation: { latitude: number; longitude: number; address: string };
-    deliveryLocation: { latitude: number; longitude: number; address: string };
-    distance: number;
-    duration: number;
-    images: string[];
-    description: string;
-    itemSize: string;
-    floor?: number;
-    hasElevator?: boolean;
-  };
+  NewOrderStep2: undefined;
+  NewOrderStep3: undefined;
+  NewOrderStep4: undefined;
   OrderSuccess: {
     jobId: string;
   };
