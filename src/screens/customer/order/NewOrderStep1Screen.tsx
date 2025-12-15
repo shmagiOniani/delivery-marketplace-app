@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,36 +13,63 @@ import { Typography } from '@/constants/Typography';
 import { Spacing } from '@/constants/Spacing';
 import { Stepper } from '@/components/ui/Stepper';
 import { Button } from '@/components/ui/Button';
-import { useOrderFormStore, type CargoType } from '@/stores/useOrderFormStore';
+import { Input } from '@/components/ui/Input';
+import { useOrderFormStore, type JobType } from '@/stores/useOrderFormStore';
 import type { CustomerScreenProps } from '@/types/navigation';
 
-const cargoTypes: Array<{
-  type: CargoType;
+const jobTypes: Array<{
+  type: JobType;
   labelEn: string;
   labelKa: string;
   icon: string;
+  descriptionEn: string;
+  descriptionKa: string;
 }> = [
-  { type: 'small', labelEn: 'Small item', labelKa: 'პატარა ამანათი', icon: 'inventory-2' },
-  { type: 'furniture', labelEn: 'Furniture', labelKa: 'ავეჯი', icon: 'weekend' },
-  { type: 'documents', labelEn: 'Documents', labelKa: 'დოკუმენტები', icon: 'folder' },
-  { type: 'household', labelEn: 'Household', labelKa: 'საყოფაცხხო ნივთები', icon: 'home' },
+  {
+    type: 'move',
+    labelEn: 'Move',
+    labelKa: 'გადატანა',
+    icon: 'local-shipping',
+    descriptionEn: 'From one place to another',
+    descriptionKa: 'ერთი ადგილიდან მეორეში',
+  },
+  {
+    type: 'recycle',
+    labelEn: 'Recycle',
+    labelKa: 'რეციკლირება',
+    icon: 'recycling',
+    descriptionEn: 'Take to recycle/trash',
+    descriptionKa: 'რეციკლირებაში გადატანა',
+  },
+  {
+    type: 'gift',
+    labelEn: 'Gift',
+    labelKa: 'საჩუქარი',
+    icon: 'card-giftcard',
+    descriptionEn: 'Free pickup, no charges',
+    descriptionKa: 'უფასო აღება',
+  },
 ];
 
 export const NewOrderStep1Screen: React.FC<
   CustomerScreenProps<'NewOrderStep1'>
 > = ({ navigation }) => {
   const { formData, updateFormData } = useOrderFormStore();
-  const selectedType = formData.cargoType;
+  const [title, setTitle] = useState(formData.title || '');
+  const selectedJobType = formData.jobType;
 
-  const handleSelect = (type: CargoType) => {
-    updateFormData({ cargoType: type });
+  const handleSelectJobType = (type: JobType) => {
+    updateFormData({ jobType: type });
   };
 
   const handleContinue = () => {
-    if (selectedType) {
+    if (selectedJobType && title.trim().length >= 3) {
+      updateFormData({ title: title.trim() });
       navigation.navigate('NewOrderStep2');
     }
   };
+
+  const isValid = selectedJobType !== null && title.trim().length >= 3;
 
   return (
     <View style={styles.container}>
@@ -51,20 +78,33 @@ export const NewOrderStep1Screen: React.FC<
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>აირჩიე ტვირთის ტიპი</Text>
-        <Text style={styles.subtitle}>Choose cargo type</Text>
+        <Text style={styles.title}>Delivery Type</Text>
+        <Text style={styles.subtitle}>მიწოდების ტიპი</Text>
 
-        <View style={styles.grid}>
-          {cargoTypes.map((item) => {
-            const isSelected = selectedType === item.type;
+        {/* Title Input */}
+        <View style={styles.titleSection}>
+          <Input
+            label="Title *"
+            placeholder="e.g., Moving furniture from apartment"
+            value={title}
+            onChangeText={setTitle}
+            containerStyle={styles.titleInput}
+            maxLength={100}
+          />
+        </View>
+
+        {/* Job Type Selection */}
+        <View style={styles.jobTypesContainer}>
+          {jobTypes.map((item) => {
+            const isSelected = selectedJobType === item.type;
             return (
               <TouchableOpacity
                 key={item.type}
                 style={[
-                  styles.card,
-                  isSelected && styles.cardSelected,
+                  styles.jobTypeCard,
+                  isSelected && styles.jobTypeCardSelected,
                 ]}
-                onPress={() => handleSelect(item.type)}
+                onPress={() => handleSelectJobType(item.type)}
                 activeOpacity={0.7}>
                 <View
                   style={[
@@ -79,12 +119,18 @@ export const NewOrderStep1Screen: React.FC<
                 </View>
                 <Text
                   style={[
-                    styles.cardLabelEn,
-                    isSelected && styles.cardLabelSelected,
+                    styles.jobTypeLabelEn,
+                    isSelected && styles.jobTypeLabelSelected,
                   ]}>
                   {item.labelEn}
                 </Text>
-                <Text style={styles.cardLabelKa}>{item.labelKa}</Text>
+                <Text style={styles.jobTypeLabelKa}>{item.labelKa}</Text>
+                <Text style={styles.jobTypeDescription}>
+                  {item.descriptionEn}
+                </Text>
+                <Text style={styles.jobTypeDescriptionKa}>
+                  {item.descriptionKa}
+                </Text>
               </TouchableOpacity>
             );
           })}
@@ -93,9 +139,9 @@ export const NewOrderStep1Screen: React.FC<
 
       <View style={styles.footer}>
         <Button
-          title="გაგრძელება →"
+          title="Next →"
           onPress={handleContinue}
-          disabled={!selectedType}
+          disabled={!isValid}
         />
       </View>
     </View>
@@ -125,32 +171,32 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     textAlign: 'center',
   },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  titleSection: {
+    marginBottom: Spacing.lg,
+  },
+  titleInput: {
+    marginBottom: 0,
+  },
+  jobTypesContainer: {
     gap: Spacing.md,
   },
-  card: {
-    width: '47%',
-    aspectRatio: 1,
-    backgroundColor: Colors.background,
+  jobTypeCard: {
+    backgroundColor: Colors.white,
     borderRadius: 16,
     padding: Spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
     borderWidth: 2,
     borderColor: Colors.border,
+    alignItems: 'center',
   },
-  cardSelected: {
+  jobTypeCardSelected: {
     borderColor: Colors.primary,
-    backgroundColor: Colors.warning,
+    backgroundColor: '#F3E8FF', // Purple background as per spec
   },
   iconContainer: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.md,
@@ -158,18 +204,28 @@ const styles = StyleSheet.create({
   iconContainerSelected: {
     backgroundColor: Colors.primary,
   },
-  cardLabelEn: {
-    ...Typography.bodyBold,
+  jobTypeLabelEn: {
+    ...Typography.h3,
     color: Colors.text.primary,
     marginBottom: Spacing.xs,
-    textAlign: 'center',
   },
-  cardLabelSelected: {
+  jobTypeLabelSelected: {
     color: Colors.dark,
   },
-  cardLabelKa: {
+  jobTypeLabelKa: {
+    ...Typography.body,
+    color: Colors.text.secondary,
+    marginBottom: Spacing.xs,
+  },
+  jobTypeDescription: {
     ...Typography.small,
     color: Colors.text.secondary,
+    textAlign: 'center',
+    marginTop: Spacing.xs,
+  },
+  jobTypeDescriptionKa: {
+    ...Typography.tiny,
+    color: Colors.text.light,
     textAlign: 'center',
   },
   footer: {

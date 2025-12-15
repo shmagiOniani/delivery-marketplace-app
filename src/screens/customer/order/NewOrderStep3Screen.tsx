@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   Switch,
+  TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -16,45 +16,154 @@ import { Spacing } from '@/constants/Spacing';
 import { Stepper } from '@/components/ui/Stepper';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import {
-  useOrderFormStore,
-  type WeightOption,
-  type SizeOption,
-} from '@/stores/useOrderFormStore';
+import { useOrderFormStore } from '@/stores/useOrderFormStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import type { CustomerScreenProps } from '@/types/navigation';
 
-const weightOptions: WeightOption[] = ['light', 'medium', 'heavy'];
-const sizeOptions: SizeOption[] = ['small', 'medium', 'large', 'xlarge'];
+const recyclingLocations = [
+  {
+    id: 'tbilisi-central',
+    name: 'Tbilisi Central Recycling Center',
+    nameKa: 'თბილისის ცენტრალური რეციკლირების ცენტრი',
+    lat: 41.7151,
+    lng: 44.8271,
+  },
+  {
+    id: 'vake',
+    name: 'Vake Recycling Point',
+    nameKa: 'ვაკეს რეციკლირების პუნქტი',
+    lat: 41.6971,
+    lng: 44.7756,
+  },
+  {
+    id: 'saburtalo',
+    name: 'Saburtalo Recycling Facility',
+    nameKa: 'საბურთალოს რეციკლირების ობიექტი',
+    lat: 41.72,
+    lng: 44.768,
+  },
+  {
+    id: 'isani',
+    name: 'Isani Waste Management Center',
+    nameKa: 'ისანის ნაგავის მართვის ცენტრი',
+    lat: 41.707,
+    lng: 44.789,
+  },
+  {
+    id: 'gldani',
+    name: 'Gldani Recycling Station',
+    nameKa: 'გლდანის რეციკლირების სადგური',
+    lat: 41.76,
+    lng: 44.82,
+  },
+];
 
 export const NewOrderStep3Screen: React.FC<
   CustomerScreenProps<'NewOrderStep3'>
 > = ({ navigation }) => {
   const { formData, updateFormData } = useOrderFormStore();
-  const [description, setDescription] = useState(formData.description || '');
-  const [weight, setWeight] = useState<WeightOption | null>(formData.weight);
-  const [size, setSize] = useState<SizeOption | null>(formData.size);
-  const [fragile, setFragile] = useState(formData.fragile);
-  const [pickupName, setPickupName] = useState(
-    formData.pickupAddress?.name || '',
+  const { user } = useAuthStore();
+  const jobType = formData.jobType;
+
+  // Skip this step for gift type
+  useEffect(() => {
+    if (jobType === 'gift') {
+      navigation.navigate('NewOrderStep4');
+    }
+  }, [jobType, navigation]);
+
+  const [deliveryAddress, setDeliveryAddress] = useState(
+    formData.deliveryLocation?.address || '',
   );
-  const [pickupFloor, setPickupFloor] = useState(
-    formData.pickupAddress?.floor || '',
+  const [deliveryLat, setDeliveryLat] = useState(
+    formData.deliveryLocation?.lat?.toString() || '',
+  );
+  const [deliveryLng, setDeliveryLng] = useState(
+    formData.deliveryLocation?.lng?.toString() || '',
+  );
+  const [selectedRecyclingLocation, setSelectedRecyclingLocation] = useState(
+    formData.selectedRecyclingLocation || '',
+  );
+  const [deliveryContactName, setDeliveryContactName] = useState(
+    formData.deliveryContactName || user?.full_name || '',
+  );
+  const [deliveryContactPhone, setDeliveryContactPhone] = useState(
+    formData.deliveryContactPhone || user?.phone || '',
+  );
+  const [deliveryNotes, setDeliveryNotes] = useState(
+    formData.deliveryNotes || '',
+  );
+  const [deliveryFloor, setDeliveryFloor] = useState(
+    formData.deliveryFloor || '',
+  );
+  const [deliveryElevator, setDeliveryElevator] = useState(
+    formData.deliveryElevator || false,
   );
 
-  const handleContinue = () => {
-    updateFormData({
-      description,
-      weight: weight || null,
-      size: size || null,
-      fragile,
-      pickupAddress: {
-        ...formData.pickupAddress!,
-        name: pickupName,
-        floor: pickupFloor,
-      },
-    });
-    navigation.navigate('NewOrderStep4');
+  const handleSelectRecyclingLocation = (locationId: string) => {
+    const location = recyclingLocations.find((loc) => loc.id === locationId);
+    if (location) {
+      setSelectedRecyclingLocation(locationId);
+      setDeliveryAddress(location.name);
+      setDeliveryLat(location.lat.toString());
+      setDeliveryLng(location.lng.toString());
+    }
   };
+
+  const handleContinue = () => {
+    if (jobType === 'recycle') {
+      if (selectedRecyclingLocation) {
+        const location = recyclingLocations.find(
+          (loc) => loc.id === selectedRecyclingLocation,
+        );
+        if (location) {
+          updateFormData({
+            deliveryLocation: {
+              address: location.name,
+              lat: location.lat,
+              lng: location.lng,
+            },
+            selectedRecyclingLocation,
+            deliveryContactName,
+            deliveryContactPhone,
+            deliveryNotes,
+            deliveryFloor,
+            deliveryElevator,
+          });
+          navigation.navigate('NewOrderStep4');
+        }
+      }
+    } else if (jobType === 'move') {
+      if (deliveryAddress && deliveryLat && deliveryLng) {
+        updateFormData({
+          deliveryLocation: {
+            address: deliveryAddress,
+            lat: parseFloat(deliveryLat),
+            lng: parseFloat(deliveryLng),
+          },
+          deliveryContactName,
+          deliveryContactPhone,
+          deliveryNotes,
+          deliveryFloor,
+          deliveryElevator,
+        });
+        navigation.navigate('NewOrderStep4');
+      }
+    }
+  };
+
+  const isValid =
+    jobType === 'recycle'
+      ? selectedRecyclingLocation.length > 0
+      : deliveryAddress.trim().length > 0 &&
+        deliveryLat &&
+        deliveryLng &&
+        !isNaN(parseFloat(deliveryLat)) &&
+        !isNaN(parseFloat(deliveryLng));
+
+  if (jobType === 'gift') {
+    return null; // This step is skipped for gift type
+  }
 
   return (
     <View style={styles.container}>
@@ -63,126 +172,187 @@ export const NewOrderStep3Screen: React.FC<
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}>
-        <View style={styles.photoSection}>
-          <Text style={styles.sectionTitle}>Photos</Text>
-          <View style={styles.photoGrid}>
-            {[0, 1, 2, 3, 4].map((index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.photoPlaceholder}
-                activeOpacity={0.7}>
-                {index === 0 ? (
-                  <Icon name="inventory-2" size={32} color={Colors.text.light} />
-                ) : (
-                  <Icon name="add" size={32} color={Colors.text.light} />
+        <Text style={styles.header}>Delivery Location</Text>
+        <Text style={styles.headerKa}>მიწოდების ლოკაცია</Text>
+
+        {jobType === 'recycle' ? (
+          /* Recycling Location Selector */
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Recycling Location *</Text>
+            <Text style={styles.sectionTitleKa}>რეციკლირების ლოკაცია</Text>
+            <View style={styles.recyclingLocationsList}>
+              {recyclingLocations.map((location) => {
+                const isSelected = selectedRecyclingLocation === location.id;
+                return (
+                  <TouchableOpacity
+                    key={location.id}
+                    style={[
+                      styles.recyclingLocationCard,
+                      isSelected && styles.recyclingLocationCardSelected,
+                    ]}
+                    onPress={() => handleSelectRecyclingLocation(location.id)}
+                    activeOpacity={0.7}>
+                    <Icon
+                      name="location-on"
+                      size={24}
+                      color={isSelected ? Colors.primary : Colors.text.secondary}
+                    />
+                    <View style={styles.recyclingLocationInfo}>
+                      <Text
+                        style={[
+                          styles.recyclingLocationName,
+                          isSelected && styles.recyclingLocationNameSelected,
+                        ]}>
+                        {location.name}
+                      </Text>
+                      <Text style={styles.recyclingLocationNameKa}>
+                        {location.nameKa}
+                      </Text>
+                    </View>
+                    {isSelected && (
+                      <Icon name="check-circle" size={24} color={Colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Read-only Map for selected recycling location */}
+            {selectedRecyclingLocation && (
+              <View style={styles.mapContainer}>
+                <View style={styles.mapPlaceholder}>
+                  <Icon name="map" size={48} color={Colors.text.light} />
+                  <Text style={styles.mapPlaceholderText}>
+                    {recyclingLocations.find(
+                      (loc) => loc.id === selectedRecyclingLocation,
+                    )?.name}
+                  </Text>
+                  <View style={styles.marker}>
+                    <Icon name="place" size={24} color={Colors.primary} />
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+        ) : (
+          /* Move Type: Map Picker */
+          <>
+            <View style={styles.mapContainer}>
+              <View style={styles.mapPlaceholder}>
+                <Icon name="map" size={48} color={Colors.text.light} />
+                <Text style={styles.mapPlaceholderText}>Map View</Text>
+                {deliveryLat && deliveryLng && (
+                  <View style={styles.marker}>
+                    <Icon name="place" size={24} color={Colors.primary} />
+                  </View>
                 )}
-                <Text style={styles.photoPlaceholderText}>
-                  {index === 0 ? 'Photo' : '+'}
-                </Text>
-              </TouchableOpacity>
-            ))}
+              </View>
+            </View>
+
+            <View style={styles.section}>
+              <Input
+                label="Delivery Address *"
+                icon="place"
+                placeholder="Enter delivery address"
+                value={deliveryAddress}
+                onChangeText={setDeliveryAddress}
+                containerStyle={styles.input}
+              />
+              <View style={styles.coordinatesRow}>
+                <View style={styles.coordinateInput}>
+                  <Input
+                    label="Latitude"
+                    placeholder="41.7200"
+                    value={deliveryLat}
+                    onChangeText={setDeliveryLat}
+                    keyboardType="numeric"
+                    containerStyle={styles.input}
+                  />
+                </View>
+                <View style={styles.coordinateInput}>
+                  <Input
+                    label="Longitude"
+                    placeholder="44.8300"
+                    value={deliveryLng}
+                    onChangeText={setDeliveryLng}
+                    keyboardType="numeric"
+                    containerStyle={styles.input}
+                  />
+                </View>
+              </View>
+            </View>
+          </>
+        )}
+
+        {/* Contact Information */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Contact Information</Text>
+          <View style={styles.twoColumnGrid}>
+            <View style={styles.gridItem}>
+              <Input
+                label="Contact Name"
+                placeholder="Jane Doe"
+                value={deliveryContactName}
+                onChangeText={setDeliveryContactName}
+                containerStyle={styles.input}
+              />
+            </View>
+            <View style={styles.gridItem}>
+              <Input
+                label="Contact Phone"
+                placeholder="+995 555 123 456"
+                value={deliveryContactPhone}
+                onChangeText={setDeliveryContactPhone}
+                keyboardType="phone-pad"
+                containerStyle={styles.input}
+              />
+            </View>
           </View>
         </View>
 
+        {/* Delivery Notes */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Description (500 chars)</Text>
+          <Text style={styles.sectionTitle}>Delivery Notes</Text>
           <TextInput
-            style={styles.textArea}
-            placeholder="Enter item description"
+            style={styles.notesInput}
+            placeholder="Special instructions for delivery"
             placeholderTextColor={Colors.text.light}
-            value={description}
-            onChangeText={setDescription}
+            value={deliveryNotes}
+            onChangeText={setDeliveryNotes}
             multiline
             numberOfLines={4}
-            maxLength={500}
           />
-          <Text style={styles.charCount}>
-            {description.length}/500
-          </Text>
         </View>
 
+        {/* Floor & Elevator */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Weight</Text>
-          <View style={styles.optionsRow}>
-            {weightOptions.map((option) => (
-              <TouchableOpacity
-                key={option}
-                style={[
-                  styles.optionButton,
-                  weight === option && styles.optionButtonSelected,
-                ]}
-                onPress={() => setWeight(option)}>
-                <Text
-                  style={[
-                    styles.optionText,
-                    weight === option && styles.optionTextSelected,
-                  ]}>
-                  {option.charAt(0).toUpperCase() + option.slice(1)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Size</Text>
-          <View style={styles.optionsRow}>
-            {sizeOptions.map((option) => (
-              <TouchableOpacity
-                key={option}
-                style={[
-                  styles.optionButton,
-                  size === option && styles.optionButtonSelected,
-                ]}
-                onPress={() => setSize(option)}>
-                <Text
-                  style={[
-                    styles.optionText,
-                    size === option && styles.optionTextSelected,
-                  ]}>
-                  {option.toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.fragileRow}>
-            <View style={styles.fragileLabelContainer}>
-              <Text style={styles.sectionTitle}>Fragile</Text>
-              <TouchableOpacity style={styles.infoIcon}>
-                <Icon name="info" size={16} color={Colors.text.secondary} />
-              </TouchableOpacity>
+          <Text style={styles.sectionTitle}>Floor & Elevator</Text>
+          <View style={styles.twoColumnGrid}>
+            <View style={styles.gridItem}>
+              <Input
+                label="Floor"
+                placeholder="0"
+                value={deliveryFloor}
+                onChangeText={setDeliveryFloor}
+                keyboardType="numeric"
+                containerStyle={styles.input}
+              />
             </View>
-            <Switch
-              value={fragile}
-              onValueChange={setFragile}
-              trackColor={{ false: Colors.lightGray, true: Colors.primary }}
-              thumbColor={Colors.white}
-            />
+            <View style={[styles.gridItem, styles.elevatorContainer]}>
+              <Text style={styles.elevatorLabel}>Has Elevator</Text>
+              <Switch
+                value={deliveryElevator}
+                onValueChange={setDeliveryElevator}
+                trackColor={{ false: Colors.lightGray, true: Colors.primary }}
+                thumbColor={Colors.white}
+              />
+            </View>
           </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pickup contact</Text>
-          <Input
-            placeholder="Name"
-            value={pickupName}
-            onChangeText={setPickupName}
-            containerStyle={styles.input}
-          />
-          <Input
-            placeholder="Floor"
-            value={pickupFloor}
-            onChangeText={setPickupFloor}
-            containerStyle={styles.input}
-          />
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button title="Continue" onPress={handleContinue} />
+        <Button title="Next →" onPress={handleContinue} disabled={!isValid} />
       </View>
     </View>
   );
@@ -199,38 +369,82 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: Spacing.md,
   },
+  header: {
+    ...Typography.h2,
+    color: Colors.text.primary,
+    marginBottom: Spacing.xs,
+    textAlign: 'center',
+  },
+  headerKa: {
+    ...Typography.body,
+    color: Colors.text.secondary,
+    marginBottom: Spacing.lg,
+    textAlign: 'center',
+  },
   section: {
     marginBottom: Spacing.lg,
   },
   sectionTitle: {
     ...Typography.bodyBold,
     color: Colors.text.primary,
+    marginBottom: Spacing.xs,
+  },
+  sectionTitleKa: {
+    ...Typography.small,
+    color: Colors.text.secondary,
     marginBottom: Spacing.md,
   },
-  photoSection: {
-    marginBottom: Spacing.lg,
-  },
-  photoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  photoPlaceholder: {
-    width: '18%',
-    aspectRatio: 1,
-    backgroundColor: Colors.background,
+  mapContainer: {
+    height: 300,
+    marginBottom: Spacing.md,
     borderRadius: 12,
+    overflow: 'hidden',
+  },
+  mapPlaceholder: {
+    flex: 1,
+    backgroundColor: Colors.lightGray,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
+    position: 'relative',
   },
-  photoPlaceholderText: {
-    ...Typography.tiny,
+  mapPlaceholderText: {
+    ...Typography.body,
     color: Colors.text.light,
-    marginTop: Spacing.xs,
+    marginTop: Spacing.sm,
   },
-  textArea: {
+  marker: {
+    position: 'absolute',
+    top: '40%',
+    left: '50%',
+    marginLeft: -12,
+  },
+  input: {
+    marginBottom: Spacing.md,
+  },
+  coordinatesRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  coordinateInput: {
+    flex: 1,
+  },
+  twoColumnGrid: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  gridItem: {
+    flex: 1,
+  },
+  elevatorContainer: {
+    justifyContent: 'flex-end',
+    paddingBottom: Spacing.sm,
+  },
+  elevatorLabel: {
+    ...Typography.small,
+    color: Colors.text.primary,
+    marginBottom: Spacing.sm,
+  },
+  notesInput: {
     ...Typography.body,
     backgroundColor: Colors.background,
     borderRadius: 12,
@@ -241,51 +455,37 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     color: Colors.text.primary,
   },
-  charCount: {
-    ...Typography.tiny,
-    color: Colors.text.light,
-    textAlign: 'right',
-    marginTop: Spacing.xs,
-  },
-  optionsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  recyclingLocationsList: {
     gap: Spacing.sm,
   },
-  optionButton: {
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 8,
-    backgroundColor: Colors.background,
-    borderWidth: 1,
+  recyclingLocationCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    borderWidth: 2,
     borderColor: Colors.border,
+    gap: Spacing.md,
   },
-  optionButtonSelected: {
-    backgroundColor: Colors.primary,
+  recyclingLocationCardSelected: {
     borderColor: Colors.primary,
+    backgroundColor: Colors.warning,
   },
-  optionText: {
-    ...Typography.body,
+  recyclingLocationInfo: {
+    flex: 1,
+  },
+  recyclingLocationName: {
+    ...Typography.bodyBold,
+    color: Colors.text.primary,
+    marginBottom: Spacing.xs,
+  },
+  recyclingLocationNameSelected: {
+    color: Colors.dark,
+  },
+  recyclingLocationNameKa: {
+    ...Typography.small,
     color: Colors.text.secondary,
-  },
-  optionTextSelected: {
-    color: Colors.white,
-    fontWeight: '600',
-  },
-  fragileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  fragileLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoIcon: {
-    marginLeft: Spacing.xs,
-  },
-  input: {
-    marginBottom: Spacing.md,
   },
   footer: {
     padding: Spacing.md,
