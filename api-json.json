@@ -1,0 +1,754 @@
+{
+    "info": {
+        "_postman_id": "36cbcb90-ffa3-4961-a46c-1dfe9ca95f42",
+        "name": "Delivery Marketplace - Mobile App API",
+        "description": "Complete API collection for the Delivery Marketplace mobile app. Import this collection into Postman to test all endpoints.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_exporter_id": "44010303",
+        "_collection_link": "https://future-me.postman.co/workspace/Carryo~0ec5543c-345c-4ef2-a05f-b813a4b26bd9/collection/44010303-36cbcb90-ffa3-4961-a46c-1dfe9ca95f42?action=share&source=collection_link&creator=44010303"
+    },
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.collectionVariables.set('access_token', jsonData.session.access_token);",
+                                    "    pm.collectionVariables.set('refresh_token', jsonData.session.refresh_token);",
+                                    "    pm.collectionVariables.set('user_id', jsonData.user.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "User login endpoint. Returns user data, session tokens, and role."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Signup",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"John Doe\",\n  \"role\": \"customer\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/signup",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "signup"
+                            ]
+                        },
+                        "description": "User registration endpoint. Creates a new user account."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "logout"
+                            ]
+                        },
+                        "description": "User logout endpoint. Clears the session."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Refresh Token",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.collectionVariables.set('access_token', jsonData.access_token);",
+                                    "    pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/refresh",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "refresh"
+                            ]
+                        },
+                        "description": "Refresh access token using refresh token."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Forgot Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"user@example.com\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/forgot-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "forgot-password"
+                            ]
+                        },
+                        "description": "Request password reset. Sends a password reset email to the user."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reset Password (with token)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"password\": \"newPassword123\",\n  \"token\": \"reset_token_from_email\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "reset-password"
+                            ]
+                        },
+                        "description": "Reset password using token from email. Extract the access_token from the password reset email link."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reset Password (authenticated)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"password\": \"newPassword123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "reset-password"
+                            ]
+                        },
+                        "description": "Change password while authenticated. No token needed."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Jobs",
+            "item": [
+                {
+                    "name": "List Jobs",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs?status=pending&limit=10&offset=0",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "jobs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "pending",
+                                    "description": "Filter by status: pending, accepted, in_transit, delivered, cancelled, banned"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10",
+                                    "description": "Number of results to return"
+                                },
+                                {
+                                    "key": "offset",
+                                    "value": "0",
+                                    "description": "Number of results to skip"
+                                }
+                            ]
+                        },
+                        "description": "Get list of jobs. Filters based on user role (customer sees their jobs, driver sees assigned jobs, admin sees all)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Job by ID",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.collectionVariables.set('job_id', jsonData.data.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs/:jobId",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "jobs",
+                                ":jobId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "jobId",
+                                    "value": "{{job_id}}",
+                                    "description": "Job ID"
+                                }
+                            ]
+                        },
+                        "description": "Get single job details by ID."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Job (JSON)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200 || pm.response.code === 201) {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    if (jsonData.data && jsonData.data.id) {",
+                                    "        pm.collectionVariables.set('job_id', jsonData.data.id);",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"Move furniture from apartment to house\",\n  \"description\": \"Need help moving furniture\",\n  \"job_type\": \"move\",\n  \"pickup_address\": \"123 Main St, City\",\n  \"pickup_lat\": 41.7151,\n  \"pickup_lng\": 44.8271,\n  \"pickup_contact_name\": \"John Doe\",\n  \"pickup_contact_phone\": \"+995123456789\",\n  \"pickup_notes\": \"Ring doorbell\",\n  \"pickup_photos\": [],\n  \"delivery_address\": \"456 Oak Ave, City\",\n  \"delivery_lat\": 41.7200,\n  \"delivery_lng\": 44.8300,\n  \"delivery_contact_name\": \"Jane Doe\",\n  \"delivery_contact_phone\": \"+995987654321\",\n  \"delivery_notes\": \"Leave at door\",\n  \"item_category\": \"Furniture\",\n  \"item_size\": \"Large\",\n  \"item_weight\": \"Heavy\",\n  \"requires_help\": true,\n  \"customer_price\": 50.00,\n  \"driver_payout\": 40.00,\n  \"platform_fee\": 10.00,\n  \"payment_type\": \"ONLINE_PAYMENT\",\n  \"scheduled_pickup\": \"2024-12-15T10:00:00Z\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "jobs"
+                            ]
+                        },
+                        "description": "Create a new job/order. Accepts JSON format."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Job (FormData)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "title",
+                                    "value": "Move furniture",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "job_type",
+                                    "value": "move",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "pickup_address",
+                                    "value": "123 Main St",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "pickup_lat",
+                                    "value": "41.7151",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "pickup_lng",
+                                    "value": "44.8271",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "delivery_address",
+                                    "value": "456 Oak Ave",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "delivery_lat",
+                                    "value": "41.7200",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "delivery_lng",
+                                    "value": "44.8300",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "requires_help",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "customer_price",
+                                    "value": "50.00",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "driver_payout",
+                                    "value": "40.00",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "platform_fee",
+                                    "value": "10.00",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "payment_type",
+                                    "value": "ONLINE_PAYMENT",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "pickup_photos",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "jobs"
+                            ]
+                        },
+                        "description": "Create a new job/order using FormData (for file uploads)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Job Status",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"in_transit\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs/:jobId",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "jobs",
+                                ":jobId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "jobId",
+                                    "value": "{{job_id}}"
+                                }
+                            ]
+                        },
+                        "description": "Update job status. Customers can cancel pending jobs. Drivers can update to in_transit or delivered. Admins can update any status."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cancel/Delete Job",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs/:jobId",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "jobs",
+                                ":jobId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "jobId",
+                                    "value": "{{job_id}}"
+                                }
+                            ]
+                        },
+                        "description": "Cancel a job. Updates status to 'cancelled' instead of deleting."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Payments",
+            "item": [
+                {
+                    "name": "Create Payment Intent",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"jobId\": \"{{job_id}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/create-payment-intent",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "create-payment-intent"
+                            ]
+                        },
+                        "description": "Create a Stripe payment intent for a job. Amount is calculated from the job's customer_price. Returns clientSecret and paymentIntentId."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Confirm Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"paymentIntentId\": \"pi_xxxxxxxxxxxxx\",\n  \"jobId\": \"{{job_id}}\",\n  \"saveCard\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/confirm-payment",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "confirm-payment"
+                            ]
+                        },
+                        "description": "Confirm a payment after Stripe payment is successful. Optional saveCard parameter to save payment method for future use."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Capture Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"jobId\": \"{{job_id}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/capture-payment",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "capture-payment"
+                            ]
+                        },
+                        "description": "Capture a held payment (release to driver). Job must be in 'delivered' status and payment must be in 'held' status."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Payment by Job ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/payments/job/:jobId",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "payments",
+                                "job",
+                                ":jobId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "jobId",
+                                    "value": "{{job_id}}"
+                                }
+                            ]
+                        },
+                        "description": "Get payment information for a specific job."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Refund Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"jobId\": \"{{job_id}}\",\n  \"reason\": \"Customer requested cancellation\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/refund-payment",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "refund-payment"
+                            ]
+                        },
+                        "description": "Refund a payment for a cancelled job."
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:3000",
+            "type": "string"
+        },
+        {
+            "key": "access_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "refresh_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "user_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "job_id",
+            "value": "",
+            "type": "string"
+        }
+    ]
+ }
+ 
+ 
