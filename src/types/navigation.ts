@@ -20,6 +20,9 @@ export type CustomerTabParamList = {
 
 export type CustomerStackParamList = {
   CustomerTabs: NavigatorScreenParams<CustomerTabParamList>;
+  // New multi-step job creation wizard
+  CreateJob: undefined;
+  // Legacy order creation screens (can be deprecated)
   NewOrderStep1: undefined;
   NewOrderStep2: {
     itemType: string;
@@ -50,7 +53,8 @@ export type CustomerStackParamList = {
     jobId: string;
   };
   OrderDetail: {
-    jobId: string;
+    orderId?: string; // Support both orderId and jobId for compatibility
+    jobId?: string;
   };
   Chat: {
     jobId: string;

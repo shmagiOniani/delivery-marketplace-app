@@ -20,7 +20,7 @@ Yes! You can test your app on your iPhone before publishing. Here are the option
 
 2. **Open the project in Xcode:**
    ```bash
-   open ios/AwesomProject.xcworkspace
+   open ios/delivery-marketplace-app.xcworkspace
    ```
    ⚠️ **Important:** Open the `.xcworkspace` file, NOT the `.xcodeproj` file!
 
@@ -57,7 +57,7 @@ Yes! You can test your app on your iPhone before publishing. Here are the option
    ```
 
 2. **In Xcode:**
-   - Open `ios/AwesomProject.xcworkspace`
+   - Open `ios/delivery-marketplace-app.xcworkspace`
    - Select "Any iOS Device" as the build target
    - Product → Archive
    - Wait for the archive to complete

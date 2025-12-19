@@ -49,5 +49,5 @@ echo ""
 echo "2. If icons still don't show:"
 echo "   - Verify icon names at: https://oblador.github.io/react-native-vector-icons/"
 echo "   - Check that fonts.gradle is applied in android/app/build.gradle"
-echo "   - Verify UIAppFonts in ios/AwesomProject/Info.plist"
+echo "   - Verify UIAppFonts in ios/delivery-marketplace-app/Info.plist"
 

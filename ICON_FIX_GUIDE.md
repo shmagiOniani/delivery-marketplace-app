@@ -40,7 +40,7 @@ This automatically copies all required font files to `android/app/src/main/asset
 
 ### ✅ Solution 2: Fixed iOS Font Linking
 
-**File**: `ios/AwesomProject/Info.plist`
+**File**: `ios/delivery-marketplace-app/Info.plist`
 
 Added `UIAppFonts` array with all vector icon fonts:
 - MaterialIcons.ttf
@@ -186,7 +186,7 @@ If icons still show as "?" or wrong icons:
 ## ✅ Verification Checklist
 
 - [ ] `fonts.gradle` applied in `android/app/build.gradle`
-- [ ] `UIAppFonts` array in `ios/AwesomProject/Info.plist`
+- [ ] `UIAppFonts` array in `ios/delivery-marketplace-app/Info.plist`
 - [ ] Icon names verified at icon browser
 - [ ] Correct icon library used for each icon
 - [ ] Metro cache cleared
