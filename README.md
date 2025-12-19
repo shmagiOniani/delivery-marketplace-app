@@ -135,7 +135,7 @@ npm start -- --reset-cache
 
 ### iOS
 
-1. Open `ios/delivery-marketplace-app.xcworkspace` in Xcode
+1. Open `ios/AwesomProject.xcworkspace` in Xcode
 2. Select your target device/simulator
 3. Product → Archive
 
