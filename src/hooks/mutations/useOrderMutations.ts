@@ -96,3 +96,11 @@ export const useCancelOrderMutation = () => {
   });
 };
 
+export const useOrderMutations = () => {
+  return {
+    createOrder: useCreateOrderMutation(),
+    updateOrderStatus: useUpdateOrderStatusMutation(),
+    cancelOrder: useCancelOrderMutation(),
+  };
+};
+

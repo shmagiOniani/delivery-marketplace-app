@@ -6,7 +6,9 @@ export type JobStatus =
   | 'in_transit'
   | 'delivered'
   | 'cancelled'
-  | 'banned';
+  | 'banned'
+  | 'ready_for_verification'
+  | 'done';
 
 export type JobPurpose = 'move' | 'recycle' | 'gift';
 

@@ -34,6 +34,18 @@ const getStatusConfig = (status: JobStatus) => {
         backgroundColor: Colors.darkBlue,
         textColor: Colors.white,
       };
+    case 'ready_for_verification':
+      return {
+        label: 'Ready for Verification',
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+      };
+    case 'done':
+      return {
+        label: 'Done',
+        backgroundColor: Colors.success,
+        textColor: Colors.white,
+      };
     case 'cancelled':
       return {
         label: 'Cancelled',

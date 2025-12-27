@@ -19,6 +19,33 @@ interface RefundPaymentResponse {
   success: boolean;
 }
 
+interface InitiatePaymentResponse {
+  url: string;
+  paymentId: string;
+  fee: string;
+}
+
+export const useInitiatePaymentMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (jobId: string) => {
+      const response = await apiClient.post<InitiatePaymentResponse>(
+        '/api/pay',
+        { jobId }
+      );
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+    },
+    onError: (error) => {
+      showErrorAlert(error, 'Failed to initiate payment');
+    },
+  });
+};
+
 export const useCreatePaymentIntentMutation = () => {
   return useMutation({
     mutationFn: async ({
