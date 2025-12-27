@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Colors } from '@/constants/Colors';
 import { Typography } from '@/constants/Typography';
 import { Spacing } from '@/constants/Spacing';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { JobStatus } from '@/types';
 import type { CustomerTabScreenProps } from '@/types/navigation';
 
@@ -29,6 +30,7 @@ const FILTER_TABS: { label: string; status?: JobStatus }[] = [
 
 export const OrdersListScreen: React.FC<CustomerTabScreenProps<'Orders'>> = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [selectedFilter, setSelectedFilter] = useState<string | undefined>(
     undefined
   );
@@ -47,7 +49,7 @@ export const OrdersListScreen: React.FC<CustomerTabScreenProps<'Orders'>> = () =
     offset,
   });
 
-  const orders = jobsData?.data || [];
+  const orders = jobsData || [];
   const hasMore = orders.length === limit;
 
   const onRefresh = useCallback(() => {
@@ -79,7 +81,7 @@ export const OrdersListScreen: React.FC<CustomerTabScreenProps<'Orders'>> = () =
 
   return (
     <View style={styles.container}>
-      <View style={styles.filterContainer}>
+      <View style={[styles.filterContainer, { paddingTop: insets.top + Spacing.md }]}>
         <FlatList
           horizontal
           data={FILTER_TABS}
@@ -165,7 +167,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-    paddingVertical: Spacing.sm,
+    paddingBottom: Spacing.sm,
   },
   filterList: {
     paddingHorizontal: Spacing.md,

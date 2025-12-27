@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Image,
+  Dimensions,
 } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -26,7 +28,8 @@ export const OrderDetailScreen: React.FC<
   const navigation = useNavigation();
   const { jobId } = route.params as { jobId: string };
   const { data: jobsData, isLoading } = useJobsQuery({});
-  const order = jobsData?.data?.find((job) => job.id === jobId);
+  const order = jobsData?.find((job) => job.id === jobId);
+  console.log(order);
 
   const [pickupName, setPickupName] = useState(order?.pickup_contact_name || '');
   const [pickupFloor, setPickupFloor] = useState('');
@@ -34,6 +37,7 @@ export const OrderDetailScreen: React.FC<
     order?.delivery_contact_name || ''
   );
   const [deliveryFloor, setDeliveryFloor] = useState('');
+  const [currentPage, setCurrentPage] = useState(0);
 
   if (isLoading || !order) {
     return <LoadingSpinner fullScreen />;
@@ -72,66 +76,64 @@ export const OrderDetailScreen: React.FC<
     navigation.goBack();
   };
 
+  // Get pickup photos or empty array
+  const pickupPhotos = order.pickup_photos || [];
+  const screenWidth = Dimensions.get('window').width;
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Map View */}
-        <View style={styles.mapContainer}>
-          <MapView
-            style={styles.map}
-            initialRegion={{
-              latitude: centerLat,
-              longitude: centerLng,
-              latitudeDelta: 0.05,
-              longitudeDelta: 0.05,
+        {/* Swipeable Map and Photos Container */}
+        <View style={styles.swipeableContainer}>
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            style={styles.horizontalScrollView}
+            onMomentumScrollEnd={(event) => {
+              const pageIndex = Math.round(
+                event.nativeEvent.contentOffset.x / screenWidth
+              );
+              setCurrentPage(pageIndex);
             }}
           >
-            {/* Route Polyline */}
-            <Polyline
-              coordinates={routeCoordinates}
-              strokeColor={Colors.primary}
-              strokeWidth={3}
-              lineDashPattern={[5, 5]}
-            />
+            {/* Map View - First Item */}
+           
 
-            {/* Pickup Marker */}
-            <Marker coordinate={pickupCoordinates} pinColor={Colors.primary}>
-              <View style={styles.pickupMarker}>
-                <Icon name="radio-button-checked" size={24} color={Colors.primary} />
+            {pickupPhotos.map((photo, index) => (
+              <View key={index} style={[styles.photoContainer, { width: screenWidth }]}>
+                <Image
+                  source={{ uri: photo }}
+                  style={styles.photo}
+                  resizeMode="cover"
+                />
+                <View style={styles.photoOverlay}>
+                  <Text style={styles.photoLabel}>Pickup Photo {index + 1}</Text>
+                </View>
               </View>
-            </Marker>
+            ))}
+          </ScrollView>
 
-            {/* Delivery Marker */}
-            <Marker coordinate={deliveryCoordinates} pinColor={Colors.warning}>
-              <View style={styles.deliveryMarker}>
-                <Icon name="place" size={24} color={Colors.warning} />
-              </View>
-            </Marker>
-
-            {/* Car Icon (moving along route) */}
-            <Marker
-              coordinate={{
-                latitude: centerLat,
-                longitude: centerLng,
-              }}
-            >
-              <View style={styles.carMarker}>
-                <Icon name="directions-car" size={24} color={Colors.primary} />
-              </View>
-            </Marker>
-          </MapView>
-
-          {/* Route Information Overlay */}
-          <View style={styles.routeInfo}>
-            <View style={styles.routeInfoItem}>
-              <Icon name="straighten" size={16} color={Colors.text.secondary} />
-              <Text style={styles.routeInfoText}>Distance: {distance} km</Text>
+          {/* Page Indicator */}
+          {(pickupPhotos.length > 0) && (
+            <View style={styles.pageIndicator}>
+              <View
+                style={[
+                  styles.pageIndicatorDot,
+                  currentPage === 0 && styles.pageIndicatorDotActive,
+                ]}
+              />
+              {pickupPhotos.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.pageIndicatorDot,
+                    currentPage === index + 1 && styles.pageIndicatorDotActive,
+                  ]}
+                />
+              ))}
             </View>
-            <View style={styles.routeInfoItem}>
-              <Icon name="access-time" size={16} color={Colors.text.secondary} />
-              <Text style={styles.routeInfoText}>Est. Time: {estimatedTime} min</Text>
-            </View>
-          </View>
+          )}
         </View>
 
         {/* Order Status Card */}
@@ -203,13 +205,13 @@ export const OrderDetailScreen: React.FC<
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Item price:</Text>
             <Text style={styles.priceValue}>
-              ${(order.customer_price * 0.6).toFixed(2)}
+              ${(order.customer_price * 0.85).toFixed(2)}
             </Text>
           </View>
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Delivery fee:</Text>
             <Text style={styles.priceValue}>
-              ${(order.customer_price * 0.4).toFixed(2)}
+              ${(order.customer_price * 0.15).toFixed(2)}
             </Text>
           </View>
           <View style={[styles.priceRow, styles.totalRow]}>
@@ -248,9 +250,57 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  swipeableContainer: {
+    height: 300,
+    position: 'relative',
+  },
+  horizontalScrollView: {
+    height: 300,
+  },
   mapContainer: {
     height: 300,
     position: 'relative',
+  },
+  photoContainer: {
+    height: 300,
+    position: 'relative',
+    backgroundColor: Colors.background,
+  },
+  photo: {
+    width: '100%',
+    height: '100%',
+  },
+  photoOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: Spacing.md,
+  },
+  photoLabel: {
+    ...Typography.body,
+    color: Colors.white,
+    fontWeight: '600',
+  },
+  pageIndicator: {
+    position: 'absolute',
+    bottom: Spacing.md,
+    right: Spacing.md,
+    flexDirection: 'row',
+    gap: Spacing.xs,
+  },
+  pageIndicatorDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.white,
+    opacity: 0.5,
+  },
+  pageIndicatorDotActive: {
+    opacity: 1,
+    width: 20,
+    backgroundColor: Colors.primary,
   },
   map: {
     width: '100%',

@@ -291,7 +291,7 @@ const HorizontalOrderCard: React.FC<HorizontalOrderCardProps> = ({
         return '0%';
     }
   };
-
+console.log(order);
   return (
     <TouchableOpacity
       style={styles.horizontalCard}
@@ -301,12 +301,20 @@ const HorizontalOrderCard: React.FC<HorizontalOrderCardProps> = ({
       <View style={styles.horizontalCardContent}>
         <View style={styles.horizontalCardHeader}>
           <Text style={styles.horizontalCardTitle}>
-            Order #{orderNumber}
+            {order.title}
           </Text>
           <StatusBadge status={order.status} />
         </View>
         <View style={styles.horizontalCardBody}>
-          <Icon name="inventory-2" size={28} color={Colors.orange} />
+          {order.pickup_photos && order.pickup_photos.length > 0 ? (
+            <Image
+              source={{ uri: order.pickup_photos[0] }}
+              style={styles.horizontalCardImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <Icon name="inventory-2" size={28} color={Colors.orange} />
+          )}
           <View style={styles.horizontalCardPrice}>
             <Text style={styles.horizontalCardPriceText}>
               ${order.customer_price.toFixed(2)}
@@ -471,6 +479,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
     gap: 8,
+  },
+  horizontalCardImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 8,
+    backgroundColor: Colors.background,
   },
   horizontalCardPrice: {
     marginLeft: 4,
