@@ -76,7 +76,7 @@ export const useSignupMutation = () => {
 
   return useMutation({
     mutationFn: async (data: SignupFormData) => {
-      const response = await apiClient.post<SignupResponse>('/api/auth/signup', {
+      const response = await apiClient.post<SignupResponse>('/auth/signup', {
         email: data.email,
         password: data.password,
         fullName: data.full_name,
@@ -119,7 +119,7 @@ export const useLogoutMutation = () => {
 
   return useMutation({
     mutationFn: async () => {
-      await apiClient.post('/api/auth/logout');
+      await apiClient.post('/auth/logout');
     },
     onSuccess: () => {
       logout();

@@ -31,7 +31,7 @@ export interface JobListParams {
 export const createJob = async (formData: FormData): Promise<CreateJobResult> => {
   try {
     const response = await apiClient.post<CreateJobResult>(
-      '/api/jobs',
+      '/jobs',
       formData,
       {
         headers: {
@@ -57,7 +57,7 @@ export const createJob = async (formData: FormData): Promise<CreateJobResult> =>
  */
 export const getJob = async (jobId: string): Promise<Job> => {
   try {
-    const response = await apiClient.get<{ data: Job }>(`/api/jobs/${jobId}`);
+    const response = await apiClient.get<{ data: Job }>(`/jobs/${jobId}`);
     return response.data;
   } catch (error: any) {
     throw {
@@ -82,7 +82,7 @@ export const getJobs = async (params?: JobListParams): Promise<{
       total?: number;
       limit?: number;
       offset?: number;
-    }>('/api/jobs', {
+    }>('/jobs', {
       params: {
         status: params?.status,
         limit: params?.limit || 20,
@@ -108,7 +108,7 @@ export const updateJobStatus = async (
 ): Promise<Job> => {
   try {
     const response = await apiClient.put<{ data: Job }>(
-      `/api/jobs/${jobId}`,
+      `/jobs/${jobId}`,
       payload
     );
     return response.data;
@@ -125,7 +125,7 @@ export const updateJobStatus = async (
  */
 export const deleteJob = async (jobId: string): Promise<void> => {
   try {
-    await apiClient.delete<{ success: boolean }>(`/api/jobs/${jobId}`);
+    await apiClient.delete<{ success: boolean }>(`/jobs/${jobId}`);
   } catch (error: any) {
     throw {
       message: error.message || 'Failed to delete job',
@@ -140,7 +140,7 @@ export const deleteJob = async (jobId: string): Promise<void> => {
 export const applyToJob = async (jobId: string): Promise<void> => {
   try {
     await apiClient.post<{ success: boolean; message: string }>(
-      `/api/jobs/${jobId}/apply`,
+      `/jobs/${jobId}/apply`,
       {}
     );
   } catch (error: any) {
@@ -160,7 +160,7 @@ export const acceptApplication = async (
 ): Promise<Job> => {
   try {
     const response = await apiClient.post<{ data: Job }>(
-      `/api/jobs/${jobId}/accept`,
+      `/jobs/${jobId}/accept`,
       { driver_id: driverId }
     );
     return response.data;

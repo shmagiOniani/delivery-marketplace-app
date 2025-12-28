@@ -37,7 +37,6 @@ export const HomeScreen: React.FC<CustomerTabScreenProps<'Home'>> = () => {
     isRefetching,
   } = useJobsQuery({ limit: 10 });
     
-    console.log(jobsData)
 
   const activeJobs = jobsData || [];
 
@@ -291,7 +290,6 @@ const HorizontalOrderCard: React.FC<HorizontalOrderCardProps> = ({
         return '0%';
     }
   };
-console.log(order);
   return (
     <TouchableOpacity
       style={styles.horizontalCard}

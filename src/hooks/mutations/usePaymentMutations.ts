@@ -31,7 +31,7 @@ export const useInitiatePaymentMutation = () => {
   return useMutation({
     mutationFn: async (jobId: string) => {
       const response = await apiClient.post<InitiatePaymentResponse>(
-        '/api/pay',
+        '/pay',
         { jobId }
       );
       return response;
@@ -56,7 +56,7 @@ export const useCreatePaymentIntentMutation = () => {
       amount: number;
     }) => {
       const response = await apiClient.post<CreatePaymentIntentResponse>(
-        '/api/create-payment-intent',
+        '/create-payment-intent',
         { job_id, amount }
       );
       return response;
@@ -79,7 +79,7 @@ export const useConfirmPaymentMutation = () => {
       job_id: string;
     }) => {
       const response = await apiClient.post<ConfirmPaymentResponse>(
-        '/api/confirm-payment',
+        '/confirm-payment',
         {
           payment_intent_id,
           job_id,
@@ -104,7 +104,7 @@ export const useCapturePaymentMutation = () => {
   return useMutation({
     mutationFn: async (job_id: string) => {
       const response = await apiClient.post<CapturePaymentResponse>(
-        '/api/capture-payment',
+        '/capture-payment',
         { job_id }
       );
       return response;
@@ -132,7 +132,7 @@ export const useRefundPaymentMutation = () => {
       reason?: string;
     }) => {
       const response = await apiClient.post<RefundPaymentResponse>(
-        '/api/refund-payment',
+        '/refund-payment',
         { jobId, reason }
       );
       return response;

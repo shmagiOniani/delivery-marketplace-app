@@ -28,7 +28,7 @@ export const useApplicationsQuery = (jobId: string) => {
     queryKey: ['applications', jobId],
     queryFn: async () => {
       const response = await apiClient.get<{ data: Application[] }>(
-        `/api/jobs/${jobId}/applications`
+        `/jobs/${jobId}/applications`
       );
       return response.data || [];
     },

@@ -13,7 +13,7 @@ export const useCreateOrderMutation = () => {
         data: Job;
         error?: string;
         reasons?: string[];
-      }>('/api/jobs', formData, {
+      }>('/jobs', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -62,7 +62,7 @@ export const useUpdateOrderStatusMutation = () => {
       status: string;
     }) => {
       const response = await apiClient.put<{ data: Job }>(
-        `/api/jobs/${jobId}`,
+        `/jobs/${jobId}`,
         { status }
       );
       return response.data;
@@ -83,7 +83,7 @@ export const useCancelOrderMutation = () => {
 
   return useMutation({
     mutationFn: async (jobId: string) => {
-      const response = await apiClient.delete<{ success: boolean }>(`/api/jobs/${jobId}`);
+      const response = await apiClient.delete<{ success: boolean }>(`/jobs/${jobId}`);
       return response;
     },
     onSuccess: () => {

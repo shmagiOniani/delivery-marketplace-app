@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
+import { io, Socket } from 'socket.io-client';
 import { Colors } from '@/constants/Colors';
 import { Typography } from '@/constants/Typography';
 import { Spacing } from '@/constants/Spacing';
@@ -21,10 +22,8 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import type { Message } from '@/types';
 import type { CustomerScreenProps } from '@/types/navigation';
 
-// WebSocket URL - adjust based on your environment
-const WS_URL = __DEV__
-  ? 'ws://localhost:3001'
-  : 'wss://your-domain.com';
+// Socket.IO server URL
+const SOCKET_URL ='http://localhost:3001';
 
 export const ChatScreen: React.FC<CustomerScreenProps<'Chat'>> = () => {
   const route = useRoute();
@@ -38,8 +37,7 @@ export const ChatScreen: React.FC<CustomerScreenProps<'Chat'>> = () => {
 
   const { user } = useAuthStore();
   const flatListRef = useRef<FlatList>(null);
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const socketRef = useRef<Socket | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -69,94 +67,105 @@ export const ChatScreen: React.FC<CustomerScreenProps<'Chat'>> = () => {
     }, [jobId, chatId])
   );
 
-  // WebSocket connection with fallback to polling
+  // Socket.IO connection with fallback to polling
   useEffect(() => {
+    if (!user?.id) return;
     if (!jobId && !chatId) return;
 
     let pollingInterval: ReturnType<typeof setInterval>;
 
-    const connectWebSocket = () => {
+    const connectSocket = () => {
+      console.log('Connecting to Socket.IO server:', SOCKET_URL);
+      
       try {
-        const wsUrl = jobId
-          ? `${WS_URL}/messages?jobId=${jobId}&token=${user?.id}`
-          : `${WS_URL}/chats/${chatId}/messages?token=${user?.id}`;
+        const socket = io(SOCKET_URL, {
+          path: '/socket.io',
+          transports: ['websocket', 'polling'],
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          reconnectionAttempts: Infinity,
+        });
 
-        const ws = new WebSocket(wsUrl);
-        wsRef.current = ws;
+        socketRef.current = socket;
 
-        ws.onopen = () => {
-          console.log('WebSocket connected');
+        socket.on('connect', () => {
+          console.log('Socket.IO connected:', socket.id);
           setIsConnected(true);
+          
           // Clear polling interval if it exists
           if (pollingInterval) {
             clearInterval(pollingInterval);
           }
-        };
 
-        ws.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            if (data.type === 'new_message') {
-              console.log('New message received via WebSocket');
-              refetch();
-              
-              // Mark as read if message is from other user
-              if (data.message?.sender_id !== user?.id) {
-                markAsRead.mutate({ jobId, chatId });
-              }
-            }
-          } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
+          // Join user room
+          socket.emit('join', user.id);
+          console.log('Joined user room:', user.id);
+
+          // Join job room if jobId exists
+          if (jobId) {
+            socket.emit('join-job', jobId);
+            console.log('Joined job room:', jobId);
           }
-        };
+        });
 
-        ws.onerror = (error) => {
-          console.error('WebSocket error:', error);
+        socket.on('disconnect', (reason: string) => {
+          console.log('Socket.IO disconnected:', reason);
           setIsConnected(false);
-        };
-
-        ws.onclose = () => {
-          console.log('WebSocket disconnected');
-          setIsConnected(false);
-          wsRef.current = null;
           
-          // Attempt to reconnect after 5 seconds
-          reconnectTimeoutRef.current = setTimeout(() => {
-            console.log('Attempting to reconnect WebSocket...');
-            connectWebSocket();
-          }, 5000);
-
           // Start polling as fallback
           startPolling();
-        };
+        });
+
+        socket.on('connect_error', (error: Error) => {
+          console.error('Socket.IO connection error:', error);
+          setIsConnected(false);
+          startPolling();
+        });
+
+        // Listen for new messages
+        socket.on('new-message', (message: Message) => {
+          console.log('New message received via Socket.IO:', message.id);
+          refetch();
+          
+          // Mark as read if message is from other user
+          if (message.sender_id !== user.id) {
+            markAsRead.mutate({ jobId, chatId });
+          }
+        });
+
+        // Health check response
+        socket.on('pong', () => {
+          console.log('Socket.IO pong received');
+        });
       } catch (error) {
-        console.error('Failed to connect WebSocket:', error);
+        console.error('Failed to create Socket.IO connection:', error);
         setIsConnected(false);
-        // Fall back to polling
         startPolling();
       }
     };
 
     const startPolling = () => {
       // Poll every 3 seconds as fallback
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
       pollingInterval = setInterval(() => {
-        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        if (!socketRef.current || !socketRef.current.connected) {
           refetch();
         }
       }, 3000);
     };
 
-    // Try to connect via WebSocket
-    connectWebSocket();
+    // Connect to Socket.IO
+    connectSocket();
 
     // Cleanup
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
-      }
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
+      if (socketRef.current) {
+        socketRef.current.emit('leave-job', jobId);
+        socketRef.current.disconnect();
+        socketRef.current = null;
       }
       if (pollingInterval) {
         clearInterval(pollingInterval);
@@ -225,9 +234,9 @@ export const ChatScreen: React.FC<CustomerScreenProps<'Chat'>> = () => {
     );
   };
 
-  if (isLoading) {
-    return <LoadingSpinner fullScreen />;
-  }
+  // if (isLoading) {
+  //   return <LoadingSpinner fullScreen />;
+  // }
 
   if (!jobId && !chatId) {
     return (

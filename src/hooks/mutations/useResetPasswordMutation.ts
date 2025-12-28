@@ -23,7 +23,7 @@ export const useResetPasswordMutation = () => {
       }
 
       const response = await apiClient.post<ResetPasswordResponse>(
-        '/api/auth/reset-password',
+        '/auth/reset-password',
         body
       );
       return response;

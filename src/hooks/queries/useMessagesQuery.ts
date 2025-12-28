@@ -13,12 +13,13 @@ export const useMessagesQuery = ({ jobId, chatId }: UseMessagesQueryParams) => {
     queryFn: async () => {
       if (jobId) {
         const response = await apiClient.get<{ data: Message[] }>(
-          `/api/messages?jobId=${jobId}`
+          `/messages?jobId=${jobId}`
         );
         return response.data || [];
       } else if (chatId) {
+        console.log("chatId in useMessagesQuery", chatId)
         const response = await apiClient.get<{ data: Message[] }>(
-          `/api/chats/${chatId}/messages`
+          `/chats/${chatId}/messages`
         );
         return response.data || [];
       }

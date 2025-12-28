@@ -21,13 +21,13 @@ export const useSendMessageMutation = () => {
     mutationFn: async ({ jobId, chatId, content }: SendMessageParams) => {
       if (jobId) {
         const response = await apiClient.post<{ success: boolean; data: Message }>(
-          '/api/messages',
+          '/messages',
           { jobId, content }
         );
         return response;
       } else if (chatId) {
         const response = await apiClient.post<{ success: boolean; data: Message }>(
-          `/api/chats/${chatId}/messages`,
+          `/chats/${chatId}/messages`,
           { content }
         );
         return response;
@@ -52,7 +52,7 @@ export const useMarkAsReadMutation = () => {
   return useMutation({
     mutationFn: async ({ jobId, chatId }: MarkAsReadParams) => {
       const response = await apiClient.put<{ success: boolean }>(
-        '/api/messages/read',
+        '/messages/read',
         { jobId, chatId }
       );
       return response;
@@ -63,7 +63,8 @@ export const useMarkAsReadMutation = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.log(error)
       // Silent fail for mark as read
       console.error('Failed to mark messages as read');
     },

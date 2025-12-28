@@ -30,7 +30,7 @@ export const useJobQuery = (jobId: string) => {
   return useQuery({
     queryKey: ['job', jobId],
     queryFn: async () => {
-      const response = await apiClient.get<{ data: Job }>(`/api/jobs/${jobId}`);
+      const response = await apiClient.get<{ data: Job }>(`/jobs/${jobId}`);
       return response.data;
     },
     enabled: !!jobId,

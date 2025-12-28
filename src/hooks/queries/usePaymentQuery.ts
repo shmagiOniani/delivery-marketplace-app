@@ -7,7 +7,7 @@ export const usePaymentQuery = (jobId: string) => {
     queryKey: ['payment', jobId],
     queryFn: async () => {
       const response = await apiClient.get<{ data: Payment }>(
-        `/api/payments/job/${jobId}`
+        `/payments/job/${jobId}`
       );
       return response.data;
     },
