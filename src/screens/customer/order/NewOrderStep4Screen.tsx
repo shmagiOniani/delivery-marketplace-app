@@ -73,61 +73,92 @@ export const NewOrderStep4Screen: React.FC<
 
   const handleSubmit = async () => {
     try {
-      // Prepare FormData for submission
-      const formData = new FormData();
+      // Calculate final pricing based on payment type
+      // For CASH: platform_fee = 0, customer pays subtotal
+      // For ONLINE_PAYMENT: platform_fee = 15%, customer pays total
+      const finalPlatformFee = paymentType === 'CASH' ? 0 : pricing.platformFee;
+      const finalCustomerPrice = paymentType === 'CASH' ? pricing.subtotal : pricing.total;
+      const finalDriverPayout = paymentType === 'CASH' ? pricing.subtotal : pricing.driverPayout;
 
-      // Basic info
-      formData.append('job_type', 'move'); // Default to move for now
-      formData.append('title', `${itemType} delivery`);
-      formData.append('description', description);
+      // Prepare JSON payload according to API spec
+      const jobData = {
+        // Required fields
+        title: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} delivery`,
+        pickup_address: pickupLocation.address,
+        pickup_lat: pickupLocation.latitude,
+        pickup_lng: pickupLocation.longitude,
+        delivery_address: deliveryLocation.address,
+        delivery_lat: deliveryLocation.latitude,
+        delivery_lng: deliveryLocation.longitude,
+        customer_price: finalCustomerPrice,
+        driver_payout: finalDriverPayout,
+        platform_fee: finalPlatformFee,
+        payment_type: paymentType,
 
-      // Pickup location
-      formData.append('pickup_address', pickupLocation.address);
-      formData.append('pickup_lat', pickupLocation.latitude.toString());
-      formData.append('pickup_lng', pickupLocation.longitude.toString());
+        // Optional fields
+        description: description,
+        job_type: 'move' as const, // Default to move for now
+        item_category: itemType,
+        item_size: itemSize.charAt(0).toUpperCase() + itemSize.slice(1), // Capitalize first letter
+        requires_help: false, // Can be added to form later
+        pickup_photos: images.length > 0 ? images : undefined,
+      };
 
-      // Delivery location
-      formData.append('delivery_address', deliveryLocation.address);
-      formData.append('delivery_lat', deliveryLocation.latitude.toString());
-      formData.append('delivery_lng', deliveryLocation.longitude.toString());
-
-      // Item details
-      formData.append('item_category', itemType);
-      formData.append('item_size', itemSize);
-      if (floor !== undefined) {
-        formData.append('pickup_floor', floor.toString());
+      // Add optional fields only if they have values
+      if (floor !== undefined && floor > 0) {
+        // Note: API doesn't have pickup_floor field, but we can add it to notes
+        jobData.pickup_notes = `Floor: ${floor}. ${hasElevator ? 'Elevator available' : 'No elevator'}`;
+      } else if (!hasElevator) {
+        jobData.pickup_notes = 'No elevator available';
       }
-      formData.append('pickup_elevator', (hasElevator ?? true).toString());
-
-      // Pricing
-      const finalPrice = paymentType === 'CASH' ? pricing.subtotal : pricing.total;
-      formData.append('customer_price', finalPrice.toString());
-      formData.append('driver_payout', pricing.driverPayout.toString());
-      formData.append('platform_fee', pricing.platformFee.toString());
-      formData.append('payment_type', paymentType);
-
-      // Photos
-      images.forEach((imageUrl) => {
-        formData.append('pickup_photos', imageUrl);
-      });
 
       // Submit order
-      const result = await createOrderMutation.mutateAsync(formData);
+      const result = await createOrderMutation.mutateAsync(jobData);
 
       if (result.success) {
-        // Navigate to success screen
-        navigation.navigate('Customer', {
-          screen: 'OrderSuccess',
-          params: { jobId: result.data.id },
-        } as any);
+        // Check if job was flagged for moderation
+        if (result.reasons && result.reasons.length > 0) {
+          // Show moderation warning but still navigate
+          Alert.alert(
+            'Order Created (Under Review)',
+            `Your order has been created but is being reviewed for the following reasons:\n\n${result.reasons.join('\n')}\n\nIt may not be visible to drivers until approved.`,
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  navigation.navigate('Customer', {
+                    screen: 'OrderSuccess',
+                    params: { jobId: result.data.id },
+                  } as any);
+                },
+              },
+            ]
+          );
+        } else {
+          // Success - navigate to success screen
+          navigation.navigate('Customer', {
+            screen: 'OrderSuccess',
+            params: { jobId: result.data.id },
+          } as any);
+        }
       }
     } catch (error: any) {
       console.error('Order creation error:', error);
-      Alert.alert(
-        'Order Failed',
-        error.message || 'Failed to create order. Please try again.',
-        [{ text: 'OK' }]
-      );
+      
+      // Handle moderation errors
+      if (error.reasons && error.reasons.length > 0) {
+        Alert.alert(
+          'Order Creation Failed',
+          `Your order was rejected for the following reasons:\n\n${error.reasons.join('\n')}\n\nPlease review your content and try again.`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert(
+          'Order Failed',
+          error.message || 'Failed to create order. Please try again.',
+          [{ text: 'OK' }]
+        );
+      }
     }
   };
 
@@ -336,7 +367,7 @@ export const NewOrderStep4Screen: React.FC<
               </Text>
             </View>
           )}
-          {paymentType === 'ONLINE_PAYMENT' && (
+          {paymentType === 'ONLINE_PAYMENT' && pricing.platformFee > 0 && (
             <View style={styles.pricingRow}>
               <Text style={styles.pricingLabel}>Platform Fee (15%):</Text>
               <Text style={styles.pricingValue}>
@@ -344,6 +375,13 @@ export const NewOrderStep4Screen: React.FC<
               </Text>
             </View>
           )}
+          {paymentType === 'CASH' && (
+            <View style={styles.pricingRow}>
+              <Text style={styles.pricingLabel}>Platform Fee:</Text>
+              <Text style={styles.pricingValue}>₾0.00 (Cash payment)</Text>
+            </View>
+          )}
+          <View style={styles.pricingDivider} />
           <View style={styles.pricingDivider} />
           <View style={styles.pricingRow}>
             <Text style={styles.pricingTotalLabel}>Total:</Text>
@@ -352,6 +390,15 @@ export const NewOrderStep4Screen: React.FC<
               {paymentType === 'CASH'
                 ? pricing.subtotal.toFixed(2)
                 : pricing.total.toFixed(2)}
+            </Text>
+          </View>
+          <View style={styles.pricingRow}>
+            <Text style={styles.pricingLabel}>Driver receives:</Text>
+            <Text style={styles.pricingValue}>
+              ₾
+              {paymentType === 'CASH'
+                ? pricing.subtotal.toFixed(2)
+                : pricing.driverPayout.toFixed(2)}
             </Text>
           </View>
         </View>

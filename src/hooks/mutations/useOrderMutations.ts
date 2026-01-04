@@ -3,34 +3,68 @@ import apiClient from '@/lib/api/client';
 import { showErrorAlert, showSuccessAlert } from '@/lib/utils/errorHandler';
 import type { Job } from '@/types';
 
+interface CreateJobRequest {
+  title: string;
+  description?: string;
+  job_type?: 'move' | 'recycle' | 'gift';
+  pickup_address: string;
+  pickup_lat: number | string;
+  pickup_lng: number | string;
+  pickup_contact_name?: string;
+  pickup_contact_phone?: string;
+  pickup_notes?: string;
+  pickup_photos?: string[];
+  delivery_address: string;
+  delivery_lat: number | string;
+  delivery_lng: number | string;
+  delivery_contact_name?: string;
+  delivery_contact_phone?: string;
+  delivery_notes?: string;
+  item_category?: string;
+  item_size?: string;
+  item_weight?: string;
+  requires_help?: boolean | string;
+  customer_price: number | string;
+  driver_payout: number | string;
+  platform_fee: number | string;
+  payment_type: 'CASH' | 'ONLINE_PAYMENT';
+  scheduled_pickup?: string;
+}
+
+interface CreateJobResponse {
+  success: boolean;
+  data: Job;
+  error?: string;
+  reasons?: string[];
+}
+
 export const useCreateOrderMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (formData: FormData) => {
-      const response = await apiClient.post<{
-        success: boolean;
-        data: Job;
-        error?: string;
-        reasons?: string[];
-      }>('/jobs', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+    mutationFn: async (jobData: CreateJobRequest): Promise<CreateJobResponse> => {
+      // Ensure platform_fee is 0 for CASH payments (API will also enforce this)
+      const finalJobData = {
+        ...jobData,
+        platform_fee: jobData.payment_type === 'CASH' ? 0 : jobData.platform_fee,
+      };
+
+      const response = await apiClient.post<CreateJobResponse>(
+        '/jobs',
+        finalJobData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
       return response;
     },
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
-      if (response.reasons && response.reasons.length > 0) {
-        showErrorAlert(
-          {
-            message: 'Order created but flagged for moderation',
-            reasons: response.reasons,
-          },
-          'Content Moderation Alert'
-        );
-      } else {
+      // Don't show error alert for moderation - let the screen handle it
+      // The job is still created, just flagged
+      if (!response.reasons || response.reasons.length === 0) {
         showSuccessAlert('Order created successfully!');
       }
     },
