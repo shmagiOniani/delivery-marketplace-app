@@ -138,7 +138,7 @@ export const CustomerTabNavigator = () => {
                     <Icon name="add" size={32} color="#000" />
                   </View>
                 </TouchableOpacity>
-                <Text style={styles.createLabel}>Create/Add</Text>
+                {/* <Text style={styles.createLabel}>Create/Add</Text> */}
               </View>
             );
           },
