@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,44 +13,39 @@ import { Colors } from '@/constants/Colors';
 import { Typography } from '@/constants/Typography';
 import { Spacing } from '@/constants/Spacing';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useAuthStore } from '@/stores/useAuthStore';
 import type { CustomerScreenProps } from '@/types/navigation';
+import type { JobPurpose } from '@/types';
 
-interface ItemType {
-  id: string;
+interface JobTypeOption {
+  type: JobPurpose;
   name: string;
-  icon: string;
   description: string;
+  icon: string;
   color: string;
 }
 
-const ITEM_TYPES: ItemType[] = [
+const JOB_TYPES: JobTypeOption[] = [
   {
-    id: 'furniture',
-    name: 'Furniture',
-    icon: 'chair',
-    description: 'Tables, chairs, sofas, cabinets',
+    type: 'move',
+    name: 'Move',
+    description: 'From one place to another',
+    icon: 'local-shipping',
     color: Colors.primary,
   },
   {
-    id: 'electronics',
-    name: 'Electronics',
-    icon: 'devices',
-    description: 'TVs, computers, appliances',
-    color: Colors.orange,
-  },
-  {
-    id: 'boxes',
-    name: 'Boxes',
-    icon: 'inventory-2',
-    description: 'Packed boxes, packages',
+    type: 'recycle',
+    name: 'Recycle',
+    description: 'Take to recycle/trash',
+    icon: 'recycling',
     color: Colors.success,
   },
   {
-    id: 'other',
-    name: 'Other',
-    icon: 'category',
-    description: 'Other items',
-    color: Colors.gray,
+    type: 'gift',
+    name: 'Gift',
+    description: 'Free pickup, no charges',
+    icon: 'card-giftcard',
+    color: Colors.orange,
   },
 ];
 
@@ -58,18 +53,36 @@ export const NewOrderStep1Screen: React.FC<
   CustomerScreenProps<'NewOrderStep1'>
 > = () => {
   const navigation = useNavigation();
-  const [selectedType, setSelectedType] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const { user } = useAuthStore();
+  const [jobType, setJobType] = useState<JobPurpose>('move');
+  const [title, setTitle] = useState('');
+  const [errors, setErrors] = useState<{
+    jobType?: string;
+    title?: string;
+  }>({});
 
   const handleNext = () => {
-    if (!selectedType) {
-      setError('Please select an item type');
+    const newErrors: typeof errors = {};
+
+    if (!jobType) {
+      newErrors.jobType = 'Please select a job type';
+    }
+
+    if (!title.trim()) {
+      newErrors.title = 'Please enter a job title';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
     navigation.navigate('Customer', {
       screen: 'NewOrderStep2',
-      params: { itemType: selectedType },
+      params: {
+        jobType,
+        title: title.trim(),
+      },
     } as any);
   };
 
@@ -82,65 +95,110 @@ export const NewOrderStep1Screen: React.FC<
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>What are you shipping?</Text>
+          <Text style={styles.title}>Delivery Type</Text>
           <Text style={styles.subtitle}>
-            Select the type of item to help us estimate the delivery
+            Select the type of delivery and enter a title
           </Text>
         </View>
 
-        {/* Item Type Cards */}
-        <View style={styles.cardsContainer}>
-          {ITEM_TYPES.map((type) => {
-            const isSelected = selectedType === type.id;
-            return (
-              <TouchableOpacity
-                key={type.id}
-                style={[
-                  styles.card,
-                  isSelected && [
-                    styles.cardSelected,
-                    { borderColor: type.color },
-                  ],
-                ]}
-                onPress={() => {
-                  setSelectedType(type.id);
-                  setError('');
-                }}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.iconContainer,
-                    { backgroundColor: `${type.color}15` },
-                  ]}
-                >
-                  <Icon name={type.icon} size={32} color={type.color} />
-                </View>
-                <Text style={styles.cardTitle}>{type.name}</Text>
-                <Text style={styles.cardDescription}>{type.description}</Text>
-                {isSelected && (
-                  <View style={[styles.checkmark, { backgroundColor: type.color }]}>
-                    <Icon name="check" size={16} color={Colors.white} />
-                  </View>
-                )}
-              </TouchableOpacity>
-            );
-          })}
+        {/* Job Title Input */}
+        <View style={styles.section}>
+          <Text style={styles.label}>Title *</Text>
+          <TextInput
+            style={[styles.input, errors.title && styles.inputError]}
+            value={title}
+            onChangeText={(text) => {
+              setTitle(text);
+              if (errors.title) {
+                setErrors({ ...errors, title: undefined });
+              }
+            }}
+            placeholder="e.g., Move furniture from apartment to house"
+            placeholderTextColor={Colors.text.secondary}
+            maxLength={100}
+          />
+          {errors.title && (
+            <Text style={styles.errorText}>{errors.title}</Text>
+          )}
         </View>
 
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {/* Job Type Selection */}
+        <View style={styles.section}>
+          <Text style={styles.label}>Job Type *</Text>
+          <View style={styles.jobTypesContainer}>
+            {JOB_TYPES.map((type) => {
+              const isSelected = jobType === type.type;
+              return (
+                <TouchableOpacity
+                  key={type.type}
+                  style={[
+                    styles.jobTypeCard,
+                    isSelected && [
+                      styles.jobTypeCardSelected,
+                      { borderColor: type.color },
+                    ],
+                  ]}
+                  onPress={() => {
+                    setJobType(type.type);
+                    if (errors.jobType) {
+                      setErrors({ ...errors, jobType: undefined });
+                    }
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View
+                    style={[
+                      styles.iconContainer,
+                      { backgroundColor: `${type.color}15` },
+                    ]}
+                  >
+                    <Icon name={type.icon} size={32} color={type.color} />
+                  </View>
+                  <Text style={styles.jobTypeName}>{type.name}</Text>
+                  <Text style={styles.jobTypeDescription}>
+                    {type.description}
+                  </Text>
+                  {isSelected && (
+                    <View
+                      style={[
+                        styles.checkmark,
+                        { backgroundColor: type.color },
+                      ]}
+                    >
+                      <Icon name="check" size={16} color={Colors.white} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {errors.jobType && (
+            <Text style={styles.errorText}>{errors.jobType}</Text>
+          )}
+        </View>
+
+        {/* Info Box for Gift Type */}
+        {jobType === 'gift' && (
+          <View style={styles.infoBox}>
+            <Icon name="info" size={20} color={Colors.orange} />
+            <Text style={styles.infoText}>
+              Gift jobs are free. The driver can keep the items at no charge.
+              Delivery location step will be skipped.
+            </Text>
+          </View>
+        )}
 
         {/* Next Button */}
         <TouchableOpacity
           style={[
             styles.nextButton,
-            !selectedType && styles.nextButtonDisabled,
+            (!jobType || !title.trim()) && styles.nextButtonDisabled,
           ]}
           onPress={handleNext}
-          disabled={!selectedType}
+          disabled={!jobType || !title.trim()}
           activeOpacity={0.8}
         >
-          <Text style={styles.nextButtonText}>Continue</Text>
+          <Text style={styles.nextButtonText}>Next</Text>
           <Icon name="arrow-forward" size={20} color={Colors.white} />
         </TouchableOpacity>
       </ScrollView>
@@ -173,21 +231,45 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     lineHeight: 22,
   },
-  cardsContainer: {
+  section: {
     marginBottom: Spacing.lg,
   },
-  card: {
+  label: {
+    ...Typography.bodyBold,
+    color: Colors.dark,
+    marginBottom: Spacing.sm,
+  },
+  input: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: Spacing.md,
+    ...Typography.body,
+    color: Colors.dark,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  inputError: {
+    borderColor: Colors.error,
+  },
+  errorText: {
+    ...Typography.small,
+    color: Colors.error,
+    marginTop: Spacing.xs,
+  },
+  jobTypesContainer: {
+    gap: Spacing.md,
+  },
+  jobTypeCard: {
     backgroundColor: Colors.white,
     borderRadius: 16,
     padding: Spacing.lg,
-    marginBottom: Spacing.md,
     borderWidth: 2,
     borderColor: Colors.border,
     position: 'relative',
   },
-  cardSelected: {
+  jobTypeCardSelected: {
     borderWidth: 2,
-    backgroundColor: '#FFFBEB',
+    backgroundColor: '#F3E8FF',
   },
   iconContainer: {
     width: 64,
@@ -197,12 +279,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.md,
   },
-  cardTitle: {
+  jobTypeName: {
     ...Typography.h3,
     color: Colors.dark,
     marginBottom: Spacing.xs,
   },
-  cardDescription: {
+  jobTypeDescription: {
     ...Typography.small,
     color: Colors.text.secondary,
   },
@@ -216,11 +298,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  errorText: {
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#FEF3C7',
+    borderRadius: 12,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  infoText: {
+    flex: 1,
     ...Typography.small,
-    color: Colors.error,
-    marginBottom: Spacing.md,
-    textAlign: 'center',
+    color: Colors.dark,
+    lineHeight: 20,
   },
   nextButton: {
     backgroundColor: Colors.primary,

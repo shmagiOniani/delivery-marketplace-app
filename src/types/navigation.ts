@@ -25,26 +25,34 @@ export type CustomerStackParamList = {
   // Legacy order creation screens (can be deprecated)
   NewOrderStep1: undefined;
   NewOrderStep2: {
-    itemType: string;
+    jobType: 'move' | 'recycle' | 'gift';
+    title: string;
   };
   NewOrderStep3: {
-    itemType: string;
+    jobType: 'move' | 'recycle' | 'gift';
+    title: string;
     pickupLocation: { latitude: number; longitude: number; address: string };
-    deliveryLocation: { latitude: number; longitude: number; address: string };
-    distance: number;
-    duration: number;
+    pickupContactName: string;
+    pickupContactPhone: string;
+    pickupNotes: string;
+    pickupFloor?: number;
+    pickupElevator: boolean;
   };
   NewOrderStep4: {
-    itemType: string;
+    jobType: 'move' | 'recycle' | 'gift';
+    title: string;
     pickupLocation: { latitude: number; longitude: number; address: string };
+    pickupContactName: string;
+    pickupContactPhone: string;
+    pickupNotes: string;
+    pickupFloor?: number;
+    pickupElevator: boolean;
     deliveryLocation: { latitude: number; longitude: number; address: string };
-    distance: number;
-    duration: number;
-    images: string[];
-    description: string;
-    itemSize: string;
-    floor?: number;
-    hasElevator?: boolean;
+    deliveryContactName: string;
+    deliveryContactPhone: string;
+    deliveryNotes: string;
+    deliveryFloor?: number;
+    deliveryElevator: boolean;
   };
   OrderSuccess: {
     jobId: string;

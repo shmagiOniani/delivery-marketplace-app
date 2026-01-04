@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,89 +6,167 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Switch,
   Alert,
+  Switch,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { Colors } from '@/constants/Colors';
 import { Typography } from '@/constants/Typography';
 import { Spacing } from '@/constants/Spacing';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { PhotoUpload } from '@/screens/customer/job/components/PhotoUpload';
+import { MapPicker } from '@/screens/customer/job/components/MapPicker';
+import { ReadOnlyMap } from '@/screens/customer/job/components/ReadOnlyMap';
+import { RECYCLING_CENTERS } from '@/screens/customer/job/types';
 import type { CustomerScreenProps } from '@/types/navigation';
+import type { JobPurpose } from '@/types';
+import type { RecyclingCenter } from '@/screens/customer/job/types';
 
-const ITEM_SIZES = [
-  { id: 'small', label: 'Small', description: 'Fits in a car trunk' },
-  { id: 'medium', label: 'Medium', description: 'Requires a van' },
-  { id: 'large', label: 'Large', description: 'Requires a truck' },
-];
+interface Location {
+  latitude: number;
+  longitude: number;
+  address: string;
+}
 
 export const NewOrderStep3Screen: React.FC<
   CustomerScreenProps<'NewOrderStep3'>
 > = () => {
   const route = useRoute();
   const navigation = useNavigation();
+  const { user } = useAuthStore();
   const {
-    itemType,
+    jobType,
+    title,
     pickupLocation,
-    deliveryLocation,
-    distance,
-    duration,
+    pickupContactName,
+    pickupContactPhone,
+    pickupNotes,
+    pickupFloor,
+    pickupElevator,
   } = route.params as {
-    itemType: string;
-    pickupLocation: { latitude: number; longitude: number; address: string };
-    deliveryLocation: { latitude: number; longitude: number; address: string };
-    distance: number;
-    duration: number;
+    jobType: JobPurpose;
+    title: string;
+    pickupLocation: Location;
+    pickupContactName: string;
+    pickupContactPhone: string;
+    pickupNotes: string;
+    pickupFloor?: number;
+    pickupElevator: boolean;
   };
 
-  const [images, setImages] = useState<string[]>([]);
-  const [description, setDescription] = useState('');
-  const [itemSize, setItemSize] = useState<string>('');
-  const [floor, setFloor] = useState('');
-  const [hasElevator, setHasElevator] = useState(true);
+  // Auto-fill delivery contact from user profile
+  useEffect(() => {
+    if (user?.full_name) {
+      setDeliveryContactName(user.full_name);
+    }
+    if (user?.phone) {
+      setDeliveryContactPhone(user.phone);
+    }
+  }, [user]);
+
+  // Skip this step for gift jobs
+  useEffect(() => {
+    if (jobType === 'gift') {
+      // Navigate directly to Step 4
+      handleNext();
+    }
+  }, []);
+
+  const [deliveryLocation, setDeliveryLocation] = useState<Location | null>(null);
+  const [selectedRecyclingCenter, setSelectedRecyclingCenter] =
+    useState<RecyclingCenter | null>(null);
+  const [deliveryContactName, setDeliveryContactName] = useState('');
+  const [deliveryContactPhone, setDeliveryContactPhone] = useState('');
+  const [deliveryNotes, setDeliveryNotes] = useState('');
+  const [deliveryFloor, setDeliveryFloor] = useState('');
+  const [deliveryElevator, setDeliveryElevator] = useState(false);
   const [errors, setErrors] = useState<{
-    description?: string;
-    itemSize?: string;
+    deliveryLocation?: string;
   }>({});
 
-  const validate = () => {
-    const newErrors: typeof errors = {};
-
-    if (!description.trim() || description.trim().length < 10) {
-      newErrors.description = 'Description must be at least 10 characters';
+  const handleRecyclingCenterSelect = (center: RecyclingCenter) => {
+    setSelectedRecyclingCenter(center);
+    const location: Location = {
+      latitude: center.lat,
+      longitude: center.lng,
+      address: center.address,
+    };
+    setDeliveryLocation(location);
+    if (errors.deliveryLocation) {
+      setErrors({ ...errors, deliveryLocation: undefined });
     }
+  };
 
-    if (!itemSize) {
-      newErrors.itemSize = 'Please select item size';
+  const handleLocationSelect = async (
+    address: string,
+    lat: number,
+    lng: number
+  ) => {
+    const location: Location = { latitude: lat, longitude: lng, address };
+    setDeliveryLocation(location);
+    if (errors.deliveryLocation) {
+      setErrors({ ...errors, deliveryLocation: undefined });
     }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   const handleNext = () => {
-    if (!validate()) {
+    // For gift jobs, use pickup location as delivery location
+    if (jobType === 'gift') {
+      navigation.navigate('Customer', {
+        screen: 'NewOrderStep4',
+        params: {
+          jobType,
+          title,
+          pickupLocation,
+          pickupContactName,
+          pickupContactPhone,
+          pickupNotes,
+          pickupFloor,
+          pickupElevator,
+          deliveryLocation: pickupLocation, // Use pickup for gift
+          deliveryContactName: '',
+          deliveryContactPhone: '',
+          deliveryNotes: '',
+          deliveryFloor: undefined,
+          deliveryElevator: false,
+        },
+      } as any);
+      return;
+    }
+
+    // Validate delivery location
+    if (!deliveryLocation) {
+      setErrors({ deliveryLocation: 'Please select a delivery location' });
+      Alert.alert('Error', 'Please select a delivery location');
       return;
     }
 
     navigation.navigate('Customer', {
       screen: 'NewOrderStep4',
       params: {
-        itemType,
+        jobType,
+        title,
         pickupLocation,
+        pickupContactName,
+        pickupContactPhone,
+        pickupNotes,
+        pickupFloor,
+        pickupElevator,
         deliveryLocation,
-        distance,
-        duration,
-        images,
-        description: description.trim(),
-        itemSize,
-        floor: floor ? parseInt(floor, 10) : undefined,
-        hasElevator,
+        deliveryContactName,
+        deliveryContactPhone,
+        deliveryNotes,
+        deliveryFloor: deliveryFloor ? parseInt(deliveryFloor, 10) : undefined,
+        deliveryElevator,
       },
     } as any);
   };
+
+  // Don't render for gift jobs (will auto-navigate)
+  if (jobType === 'gift') {
+    return null;
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -99,139 +177,174 @@ export const NewOrderStep3Screen: React.FC<
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Item Details</Text>
+          <Text style={styles.title}>Delivery Location</Text>
           <Text style={styles.subtitle}>
-            Provide details about the item to help drivers prepare
+            {jobType === 'recycle'
+              ? 'Select a recycling center'
+              : 'Select delivery address and provide contact details'}
           </Text>
         </View>
 
-        {/* Photos */}
-        <PhotoUpload
-          photos={images}
-          onPhotosChange={setImages}
-          maxPhotos={5}
-          label="Item Photos"
-        />
-
-        {/* Description */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Description *</Text>
-          <TextInput
-            style={[
-              styles.textArea,
-              errors.description && styles.inputError,
-            ]}
-            value={description}
-            onChangeText={(text) => {
-              setDescription(text);
-              if (errors.description) {
-                setErrors({ ...errors, description: undefined });
-              }
-            }}
-            placeholder="Describe the item, its condition, and any special handling requirements..."
-            placeholderTextColor={Colors.text.secondary}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-            maxLength={500}
-          />
-          <View style={styles.inputFooter}>
-            {errors.description ? (
-              <Text style={styles.errorText}>{errors.description}</Text>
-            ) : (
-              <Text style={styles.hint}>
-                Minimum 10 characters. Be specific about size and weight.
-              </Text>
-            )}
-            <Text style={styles.charCount}>{description.length}/500</Text>
-          </View>
-        </View>
-
-        {/* Item Size */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Item Size *</Text>
-          <View style={styles.sizeContainer}>
-            {ITEM_SIZES.map((size) => {
-              const isSelected = itemSize === size.id;
-              return (
-                <TouchableOpacity
-                  key={size.id}
-                  style={[
-                    styles.sizeCard,
-                    isSelected && styles.sizeCardSelected,
-                  ]}
-                  onPress={() => {
-                    setItemSize(size.id);
-                    if (errors.itemSize) {
-                      setErrors({ ...errors, itemSize: undefined });
-                    }
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.sizeLabel}>{size.label}</Text>
-                  <Text style={styles.sizeDescription}>{size.description}</Text>
-                  {isSelected && (
-                    <View style={styles.sizeCheckmark}>
-                      <Icon name="check" size={16} color={Colors.white} />
+        {/* Recycle: Show Recycling Centers */}
+        {jobType === 'recycle' && (
+          <View style={styles.section}>
+            <Text style={styles.label}>Recycling Location *</Text>
+            <View style={styles.centersContainer}>
+              {RECYCLING_CENTERS.map((center) => {
+                const isSelected = selectedRecyclingCenter?.id === center.id;
+                return (
+                  <TouchableOpacity
+                    key={center.id}
+                    style={[
+                      styles.centerCard,
+                      isSelected && styles.centerCardSelected,
+                    ]}
+                    onPress={() => handleRecyclingCenterSelect(center)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.centerHeader}>
+                      <View style={styles.centerIcon}>
+                        <Text style={styles.centerIconText}>♻️</Text>
+                      </View>
+                      {isSelected && (
+                        <View style={styles.checkmark}>
+                          <Icon name="check" size={16} color={Colors.white} />
+                        </View>
+                      )}
                     </View>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-          {errors.itemSize && (
-            <Text style={styles.errorText}>{errors.itemSize}</Text>
-          )}
-        </View>
+                    <Text style={styles.centerName}>{center.name}</Text>
+                    <Text style={styles.centerAddress}>{center.address}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            {errors.deliveryLocation && (
+              <Text style={styles.errorText}>{errors.deliveryLocation}</Text>
+            )}
 
-        {/* Floor and Elevator */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Pickup Details</Text>
-          
-          <View style={styles.floorContainer}>
-            <Text style={styles.floorLabel}>Floor (optional)</Text>
-            <TextInput
-              style={styles.floorInput}
-              value={floor}
-              onChangeText={(text) => {
-                // Only allow numbers
-                if (text === '' || /^\d+$/.test(text)) {
-                  setFloor(text);
-                }
-              }}
-              placeholder="0"
-              placeholderTextColor={Colors.text.secondary}
-              keyboardType="number-pad"
-              maxLength={2}
+            {/* Selected Center Map */}
+            {selectedRecyclingCenter && (
+              <View style={styles.mapSection}>
+                <ReadOnlyMap
+                  latitude={selectedRecyclingCenter.lat}
+                  longitude={selectedRecyclingCenter.lng}
+                  address={selectedRecyclingCenter.address}
+                  label="Selected Center Location"
+                />
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Move: Show Map Picker */}
+        {jobType === 'move' && (
+          <View style={styles.section}>
+            <MapPicker
+              label="Delivery Address *"
+              onLocationSelect={handleLocationSelect}
+              defaultAddress={deliveryLocation?.address}
+              defaultLat={deliveryLocation?.latitude}
+              defaultLng={deliveryLocation?.longitude}
+              errorMessage={errors.deliveryLocation}
             />
           </View>
+        )}
 
-          <View style={styles.elevatorContainer}>
-            <View style={styles.elevatorInfo}>
-              <Icon name="elevator" size={24} color={Colors.dark} />
-              <View style={styles.elevatorTextContainer}>
-                <Text style={styles.elevatorLabel}>Elevator Available</Text>
-                <Text style={styles.elevatorHint}>
-                  Toggle if there's an elevator at pickup location
-                </Text>
+        {/* Contact Information (only for move jobs) */}
+        {jobType === 'move' && (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Contact Information</Text>
+              
+              <View style={styles.twoColumn}>
+                <View style={styles.column}>
+                  <Text style={styles.label}>Contact Name</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={deliveryContactName}
+                    onChangeText={setDeliveryContactName}
+                    placeholder="Jane Smith"
+                    placeholderTextColor={Colors.text.secondary}
+                  />
+                </View>
+                <View style={styles.column}>
+                  <Text style={styles.label}>Contact Phone</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={deliveryContactPhone}
+                    onChangeText={setDeliveryContactPhone}
+                    placeholder="+995 555 987 654"
+                    placeholderTextColor={Colors.text.secondary}
+                    keyboardType="phone-pad"
+                  />
+                </View>
               </View>
             </View>
-            <Switch
-              value={hasElevator}
-              onValueChange={setHasElevator}
-              trackColor={{ false: Colors.lightGray, true: Colors.primary }}
-              thumbColor={Colors.white}
-            />
-          </View>
-        </View>
+
+            {/* Delivery Notes */}
+            <View style={styles.section}>
+              <Text style={styles.label}>Delivery Notes</Text>
+              <TextInput
+                style={styles.textArea}
+                value={deliveryNotes}
+                onChangeText={setDeliveryNotes}
+                placeholder="e.g., Leave at door if no answer"
+                placeholderTextColor={Colors.text.secondary}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+            </View>
+
+            {/* Floor and Elevator */}
+            <View style={styles.section}>
+              <View style={styles.twoColumn}>
+                <View style={styles.column}>
+                  <Text style={styles.label}>Delivery Floor</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={deliveryFloor}
+                    onChangeText={(text) => {
+                      if (text === '' || /^\d+$/.test(text)) {
+                        setDeliveryFloor(text);
+                      }
+                    }}
+                    placeholder="0"
+                    placeholderTextColor={Colors.text.secondary}
+                    keyboardType="number-pad"
+                    maxLength={2}
+                  />
+                </View>
+                <View style={[styles.column, styles.elevatorColumn]}>
+                  <View style={styles.elevatorContainer}>
+                    <Icon name="elevator" size={24} color={Colors.dark} />
+                    <View style={styles.elevatorTextContainer}>
+                      <Text style={styles.elevatorLabel}>Delivery Elevator</Text>
+                    </View>
+                    <Switch
+                      value={deliveryElevator}
+                      onValueChange={setDeliveryElevator}
+                      trackColor={{ false: Colors.lightGray, true: Colors.primary }}
+                      thumbColor={Colors.white}
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+          </>
+        )}
 
         {/* Next Button */}
         <TouchableOpacity
-          style={styles.nextButton}
+          style={[
+            styles.nextButton,
+            !deliveryLocation && styles.nextButtonDisabled,
+          ]}
           onPress={handleNext}
+          disabled={!deliveryLocation}
           activeOpacity={0.8}
         >
-          <Text style={styles.nextButtonText}>Continue</Text>
+          <Text style={styles.nextButtonText}>Next</Text>
           <Icon name="arrow-forward" size={20} color={Colors.white} />
         </TouchableOpacity>
       </ScrollView>
@@ -252,7 +365,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl * 2,
   },
   header: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
   title: {
     ...Typography.h1,
@@ -267,10 +380,25 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: Spacing.lg,
   },
-  label: {
+  sectionTitle: {
     ...Typography.bodyBold,
     color: Colors.dark,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  label: {
+    ...Typography.body,
+    color: Colors.dark,
+    marginBottom: Spacing.xs,
+    fontWeight: '600',
+  },
+  input: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: Spacing.md,
+    ...Typography.body,
+    color: Colors.dark,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   textArea: {
     backgroundColor: Colors.white,
@@ -278,37 +406,42 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     ...Typography.body,
     color: Colors.dark,
-    minHeight: 100,
+    minHeight: 80,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  inputError: {
-    borderColor: Colors.error,
-  },
-  inputFooter: {
+  twoColumn: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: Spacing.xs,
+    gap: Spacing.md,
   },
-  hint: {
+  column: {
     flex: 1,
-    ...Typography.small,
-    color: Colors.text.secondary,
   },
-  charCount: {
-    ...Typography.small,
-    color: Colors.text.secondary,
-    marginLeft: Spacing.sm,
+  elevatorColumn: {
+    justifyContent: 'flex-end',
   },
-  errorText: {
-    ...Typography.small,
-    color: Colors.error,
-  },
-  sizeContainer: {
+  elevatorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.sm,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  sizeCard: {
+  elevatorTextContainer: {
+    flex: 1,
+  },
+  elevatorLabel: {
+    ...Typography.body,
+    color: Colors.dark,
+    fontWeight: '600',
+  },
+  centersContainer: {
+    gap: Spacing.md,
+  },
+  centerCard: {
     backgroundColor: Colors.white,
     borderRadius: 12,
     padding: Spacing.md,
@@ -316,82 +449,51 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     position: 'relative',
   },
-  sizeCardSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: '#FFFBEB',
+  centerCardSelected: {
+    borderColor: Colors.success,
+    backgroundColor: '#F0FDF4',
   },
-  sizeLabel: {
+  centerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  centerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#ECFDF5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  centerIconText: {
+    fontSize: 24,
+  },
+  checkmark: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.success,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  centerName: {
     ...Typography.bodyBold,
     color: Colors.dark,
     marginBottom: Spacing.xs,
   },
-  sizeDescription: {
+  centerAddress: {
     ...Typography.small,
     color: Colors.text.secondary,
   },
-  sizeCheckmark: {
-    position: 'absolute',
-    top: Spacing.sm,
-    right: Spacing.sm,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
+  mapSection: {
+    marginTop: Spacing.md,
   },
-  floorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  floorLabel: {
-    ...Typography.body,
-    color: Colors.dark,
-  },
-  floorInput: {
-    width: 80,
-    ...Typography.bodyBold,
-    color: Colors.dark,
-    textAlign: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    padding: Spacing.sm,
-  },
-  elevatorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  elevatorInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    flex: 1,
-  },
-  elevatorTextContainer: {
-    flex: 1,
-  },
-  elevatorLabel: {
-    ...Typography.bodyBold,
-    color: Colors.dark,
-    marginBottom: Spacing.xs / 2,
-  },
-  elevatorHint: {
+  errorText: {
     ...Typography.small,
-    color: Colors.text.secondary,
+    color: Colors.error,
+    marginTop: Spacing.xs,
   },
   nextButton: {
     backgroundColor: Colors.primary,
@@ -408,6 +510,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
+  },
+  nextButtonDisabled: {
+    backgroundColor: Colors.lightGray,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   nextButtonText: {
     ...Typography.bodyBold,

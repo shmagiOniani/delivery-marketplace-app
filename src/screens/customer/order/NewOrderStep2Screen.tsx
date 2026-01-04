@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,13 +18,10 @@ import { Colors } from '@/constants/Colors';
 import { Typography } from '@/constants/Typography';
 import { Spacing } from '@/constants/Spacing';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { MapPicker } from '@/screens/customer/job/components/MapPicker';
 import type { CustomerScreenProps } from '@/types/navigation';
-import {
-  calculateDistance,
-  estimateDuration,
-  formatDistance,
-  formatDuration,
-} from '@/utils/distanceCalculator';
+import type { JobPurpose } from '@/types';
 
 interface Location {
   latitude: number;
@@ -43,93 +41,39 @@ export const NewOrderStep2Screen: React.FC<
 > = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { itemType } = route.params as { itemType: string };
+  const { user } = useAuthStore();
+  const { jobType, title } = route.params as {
+    jobType: JobPurpose;
+    title: string;
+  };
 
-  const pickupMapRef = useRef<MapView>(null);
-  const deliveryMapRef = useRef<MapView>(null);
+  const mapRef = useRef<MapView>(null);
+
+  // Auto-fill from user profile
+  useEffect(() => {
+    if (user?.full_name) {
+      setPickupContactName(user.full_name);
+    }
+    if (user?.phone) {
+      setPickupContactPhone(user.phone);
+    }
+  }, [user]);
 
   const [pickupLocation, setPickupLocation] = useState<Location | null>(null);
-  const [deliveryLocation, setDeliveryLocation] = useState<Location | null>(null);
-  const [pickupAddress, setPickupAddress] = useState('');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [activeMap, setActiveMap] = useState<'pickup' | 'delivery'>('pickup');
+  const [pickupContactName, setPickupContactName] = useState('');
+  const [pickupContactPhone, setPickupContactPhone] = useState('');
+  const [pickupNotes, setPickupNotes] = useState('');
+  const [pickupFloor, setPickupFloor] = useState('');
+  const [pickupElevator, setPickupElevator] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-  const [distance, setDistance] = useState<number | null>(null);
-  const [duration, setDuration] = useState<number | null>(null);
-
-  // Calculate distance when both locations are set
-  React.useEffect(() => {
-    if (pickupLocation && deliveryLocation) {
-      const dist = calculateDistance(
-        pickupLocation.latitude,
-        pickupLocation.longitude,
-        deliveryLocation.latitude,
-        deliveryLocation.longitude
-      );
-      const dur = estimateDuration(dist);
-      setDistance(dist);
-      setDuration(dur);
-    }
-  }, [pickupLocation, deliveryLocation]);
-
-  const getCurrentLocation = (type: 'pickup' | 'delivery') => {
-    setIsLoadingLocation(true);
-    Geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        const address = await reverseGeocode(latitude, longitude);
-        const location: Location = { latitude, longitude, address };
-
-        if (type === 'pickup') {
-          setPickupLocation(location);
-          setPickupAddress(address);
-          pickupMapRef.current?.animateToRegion(
-            {
-              latitude,
-              longitude,
-              latitudeDelta: TBILISI_COORDS.latitudeDelta,
-              longitudeDelta: TBILISI_COORDS.longitudeDelta,
-            },
-            1000
-          );
-        } else {
-          setDeliveryLocation(location);
-          setDeliveryAddress(address);
-          deliveryMapRef.current?.animateToRegion(
-            {
-              latitude,
-              longitude,
-              latitudeDelta: TBILISI_COORDS.latitudeDelta,
-              longitudeDelta: TBILISI_COORDS.longitudeDelta,
-            },
-            1000
-          );
-        }
-        setIsLoadingLocation(false);
-      },
-      (error) => {
-        console.error('Location error:', error);
-        Alert.alert(
-          'Location Error',
-          'Unable to get your current location. Please select manually on the map.'
-        );
-        setIsLoadingLocation(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 10000,
-      }
-    );
-  };
+  const [errors, setErrors] = useState<{
+    pickupLocation?: string;
+  }>({});
 
   const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
     try {
-      // Using Google Geocoding API (you'll need to add your API key)
-      // For now, return coordinates as address if API key is not configured
       const apiKey = process.env.GOOGLE_MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY';
       if (apiKey === 'YOUR_GOOGLE_MAPS_API_KEY') {
-        // Fallback: return formatted coordinates
         return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
       }
       
@@ -142,109 +86,68 @@ export const NewOrderStep2Screen: React.FC<
       }
       return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     } catch (error) {
-      // Fallback to coordinates if geocoding fails
       return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     }
   };
 
-  const handleMapPress = async (
-    event: any,
-    type: 'pickup' | 'delivery'
+  const handleLocationSelect = async (
+    address: string,
+    lat: number,
+    lng: number
   ) => {
-    const { latitude, longitude } = event.nativeEvent.coordinate;
-    const address = await reverseGeocode(latitude, longitude);
-    const location: Location = { latitude, longitude, address };
-
-    if (type === 'pickup') {
-      setPickupLocation(location);
-      setPickupAddress(address);
-    } else {
-      setDeliveryLocation(location);
-      setDeliveryAddress(address);
+    const location: Location = { latitude: lat, longitude: lng, address };
+    setPickupLocation(location);
+    if (errors.pickupLocation) {
+      setErrors({ ...errors, pickupLocation: undefined });
     }
   };
 
   const handleNext = () => {
-    if (!pickupLocation || !deliveryLocation) {
-      Alert.alert('Error', 'Please select both pickup and delivery locations');
+    if (!pickupLocation) {
+      setErrors({ pickupLocation: 'Please select a pickup location' });
+      Alert.alert('Error', 'Please select a pickup location');
       return;
     }
 
-    if (!distance || !duration) {
-      Alert.alert('Error', 'Unable to calculate route. Please try again.');
+    // For gift jobs, skip Step 3 and go directly to Step 4
+    if (jobType === 'gift') {
+      navigation.navigate('Customer', {
+        screen: 'NewOrderStep4',
+        params: {
+          jobType,
+          title,
+          pickupLocation,
+          pickupContactName,
+          pickupContactPhone,
+          pickupNotes,
+          pickupFloor: pickupFloor ? parseInt(pickupFloor, 10) : undefined,
+          pickupElevator,
+          // For gift jobs, use pickup location as delivery location
+          deliveryLocation: pickupLocation,
+          deliveryContactName: '',
+          deliveryContactPhone: '',
+          deliveryNotes: '',
+          deliveryFloor: undefined,
+          deliveryElevator: false,
+        },
+      } as any);
       return;
     }
 
+    // Navigate to Step 3 (delivery location) for move and recycle jobs
     navigation.navigate('Customer', {
       screen: 'NewOrderStep3',
       params: {
-        itemType,
+        jobType,
+        title,
         pickupLocation,
-        deliveryLocation,
-        distance,
-        duration,
+        pickupContactName,
+        pickupContactPhone,
+        pickupNotes,
+        pickupFloor: pickupFloor ? parseInt(pickupFloor, 10) : undefined,
+        pickupElevator,
       },
     } as any);
-  };
-
-  const renderMap = (type: 'pickup' | 'delivery') => {
-    const location = type === 'pickup' ? pickupLocation : deliveryLocation;
-    const mapRef = type === 'pickup' ? pickupMapRef : deliveryMapRef;
-    const isActive = activeMap === type;
-
-    return (
-      <View style={[styles.mapContainer, !isActive && styles.mapHidden]}>
-        <MapView
-          ref={mapRef}
-          provider={PROVIDER_GOOGLE}
-          style={styles.map}
-          initialRegion={{
-            latitude: location?.latitude || TBILISI_COORDS.latitude,
-            longitude: location?.longitude || TBILISI_COORDS.longitude,
-            latitudeDelta: TBILISI_COORDS.latitudeDelta,
-            longitudeDelta: TBILISI_COORDS.longitudeDelta,
-          }}
-          onPress={(e) => handleMapPress(e, type)}
-          showsUserLocation
-        >
-          {location && (
-            <Marker
-              coordinate={{
-                latitude: location.latitude,
-                longitude: location.longitude,
-              }}
-              draggable
-              onDragEnd={(e) => handleMapPress(e, type)}
-            >
-              <View
-                style={[
-                  styles.marker,
-                  { backgroundColor: type === 'pickup' ? Colors.primary : Colors.success },
-                ]}
-              >
-                <Icon
-                  name={type === 'pickup' ? 'radio-button-checked' : 'place'}
-                  size={24}
-                  color={Colors.white}
-                />
-              </View>
-            </Marker>
-          )}
-        </MapView>
-
-        <TouchableOpacity
-          style={styles.currentLocationButton}
-          onPress={() => getCurrentLocation(type)}
-          disabled={isLoadingLocation}
-        >
-          {isLoadingLocation ? (
-            <ActivityIndicator color={Colors.primary} />
-          ) : (
-            <Icon name="my-location" size={24} color={Colors.primary} />
-          )}
-        </TouchableOpacity>
-      </View>
-    );
   };
 
   return (
@@ -256,117 +159,115 @@ export const NewOrderStep2Screen: React.FC<
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Select Locations</Text>
+          <Text style={styles.title}>Pickup Location</Text>
           <Text style={styles.subtitle}>
-            Choose pickup and delivery locations on the map
+            Select pickup address and provide contact details
           </Text>
         </View>
 
-        {/* Map Toggle */}
-        <View style={styles.mapToggle}>
-          <TouchableOpacity
-            style={[
-              styles.toggleButton,
-              activeMap === 'pickup' && styles.toggleButtonActive,
-            ]}
-            onPress={() => setActiveMap('pickup')}
-          >
-            <Icon
-              name="radio-button-checked"
-              size={20}
-              color={activeMap === 'pickup' ? Colors.white : Colors.primary}
-            />
-            <Text
-              style={[
-                styles.toggleText,
-                activeMap === 'pickup' && styles.toggleTextActive,
-              ]}
-            >
-              Pickup
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.toggleButton,
-              activeMap === 'delivery' && styles.toggleButtonActive,
-            ]}
-            onPress={() => setActiveMap('delivery')}
-          >
-            <Icon
-              name="place"
-              size={20}
-              color={activeMap === 'delivery' ? Colors.white : Colors.success}
-            />
-            <Text
-              style={[
-                styles.toggleText,
-                activeMap === 'delivery' && styles.toggleTextActive,
-              ]}
-            >
-              Delivery
-            </Text>
-          </TouchableOpacity>
+        {/* Map Picker */}
+        <View style={styles.section}>
+          <MapPicker
+            label="Pickup Address *"
+            onLocationSelect={handleLocationSelect}
+            defaultAddress={pickupLocation?.address}
+            defaultLat={pickupLocation?.latitude}
+            defaultLng={pickupLocation?.longitude}
+            errorMessage={errors.pickupLocation}
+          />
         </View>
 
-        {/* Maps */}
-        <View style={styles.mapsContainer}>
-          {renderMap('pickup')}
-          {renderMap('delivery')}
-        </View>
-
-        {/* Address Inputs */}
-        <View style={styles.addressSection}>
-          <View style={styles.addressInputContainer}>
-            <Icon name="radio-button-checked" size={20} color={Colors.primary} />
-            <TextInput
-              style={styles.addressInput}
-              placeholder="Pickup address"
-              value={pickupAddress}
-              onChangeText={setPickupAddress}
-              placeholderTextColor={Colors.text.secondary}
-            />
-          </View>
-          <View style={styles.addressInputContainer}>
-            <Icon name="place" size={20} color={Colors.success} />
-            <TextInput
-              style={styles.addressInput}
-              placeholder="Delivery address"
-              value={deliveryAddress}
-              onChangeText={setDeliveryAddress}
-              placeholderTextColor={Colors.text.secondary}
-            />
-          </View>
-        </View>
-
-        {/* Route Info */}
-        {distance && duration && (
-          <View style={styles.routeInfo}>
-            <View style={styles.routeInfoItem}>
-              <Icon name="straighten" size={20} color={Colors.primary} />
-              <Text style={styles.routeInfoText}>
-                Distance: {formatDistance(distance)}
-              </Text>
+        {/* Contact Information */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Contact Information</Text>
+          
+          <View style={styles.twoColumn}>
+            <View style={styles.column}>
+              <Text style={styles.label}>Contact Name</Text>
+              <TextInput
+                style={styles.input}
+                value={pickupContactName}
+                onChangeText={setPickupContactName}
+                placeholder="John Doe"
+                placeholderTextColor={Colors.text.secondary}
+              />
             </View>
-            <View style={styles.routeInfoItem}>
-              <Icon name="access-time" size={20} color={Colors.primary} />
-              <Text style={styles.routeInfoText}>
-                Est. Time: {formatDuration(duration)}
-              </Text>
+            <View style={styles.column}>
+              <Text style={styles.label}>Contact Phone</Text>
+              <TextInput
+                style={styles.input}
+                value={pickupContactPhone}
+                onChangeText={setPickupContactPhone}
+                placeholder="+995 555 123 456"
+                placeholderTextColor={Colors.text.secondary}
+                keyboardType="phone-pad"
+              />
             </View>
           </View>
-        )}
+        </View>
+
+        {/* Pickup Notes */}
+        <View style={styles.section}>
+          <Text style={styles.label}>Pickup Notes</Text>
+          <TextInput
+            style={styles.textArea}
+            value={pickupNotes}
+            onChangeText={setPickupNotes}
+            placeholder="e.g., Ring doorbell, apartment 5B"
+            placeholderTextColor={Colors.text.secondary}
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+          />
+        </View>
+
+        {/* Floor and Elevator */}
+        <View style={styles.section}>
+          <View style={styles.twoColumn}>
+            <View style={styles.column}>
+              <Text style={styles.label}>Pickup Floor</Text>
+              <TextInput
+                style={styles.input}
+                value={pickupFloor}
+                onChangeText={(text) => {
+                  if (text === '' || /^\d+$/.test(text)) {
+                    setPickupFloor(text);
+                  }
+                }}
+                placeholder="0"
+                placeholderTextColor={Colors.text.secondary}
+                keyboardType="number-pad"
+                maxLength={2}
+              />
+            </View>
+            <View style={[styles.column, styles.elevatorColumn]}>
+              <View style={styles.elevatorContainer}>
+                <Icon name="elevator" size={24} color={Colors.dark} />
+                <View style={styles.elevatorTextContainer}>
+                  <Text style={styles.elevatorLabel}>Pickup Elevator</Text>
+                </View>
+                <Switch
+                  value={pickupElevator}
+                  onValueChange={setPickupElevator}
+                  trackColor={{ false: Colors.lightGray, true: Colors.primary }}
+                  thumbColor={Colors.white}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
 
         {/* Next Button */}
         <TouchableOpacity
           style={[
             styles.nextButton,
-            (!pickupLocation || !deliveryLocation) && styles.nextButtonDisabled,
+            !pickupLocation && styles.nextButtonDisabled,
           ]}
           onPress={handleNext}
-          disabled={!pickupLocation || !deliveryLocation}
+          disabled={!pickupLocation}
           activeOpacity={0.8}
         >
-          <Text style={styles.nextButtonText}>Continue</Text>
+          <Text style={styles.nextButtonText}>Next</Text>
           <Icon name="arrow-forward" size={20} color={Colors.white} />
         </TouchableOpacity>
       </ScrollView>
@@ -387,7 +288,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl * 2,
   },
   header: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
   title: {
     ...Typography.h1,
@@ -399,115 +300,66 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     lineHeight: 22,
   },
-  mapToggle: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
+  section: {
+    marginBottom: Spacing.lg,
   },
-  toggleButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.xs,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 12,
-    backgroundColor: Colors.white,
-    borderWidth: 2,
-    borderColor: Colors.border,
-  },
-  toggleButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  toggleText: {
+  sectionTitle: {
     ...Typography.bodyBold,
     color: Colors.dark,
+    marginBottom: Spacing.md,
   },
-  toggleTextActive: {
-    color: Colors.white,
-  },
-  mapsContainer: {
-    height: 400,
-    marginBottom: Spacing.lg,
-    position: 'relative',
-  },
-  mapContainer: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: Colors.border,
-  },
-  mapHidden: {
-    opacity: 0,
-    zIndex: 0,
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  marker: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: Colors.white,
-  },
-  currentLocationButton: {
-    position: 'absolute',
-    bottom: 16,
-    right: 16,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  addressSection: {
-    marginBottom: Spacing.lg,
-    gap: Spacing.md,
-  },
-  addressInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  addressInput: {
-    flex: 1,
+  label: {
     ...Typography.body,
     color: Colors.dark,
+    marginBottom: Spacing.xs,
+    fontWeight: '600',
   },
-  routeInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  input: {
     backgroundColor: Colors.white,
     borderRadius: 12,
     padding: Spacing.md,
-    marginBottom: Spacing.lg,
+    ...Typography.body,
+    color: Colors.dark,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  routeInfoItem: {
+  textArea: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: Spacing.md,
+    ...Typography.body,
+    color: Colors.dark,
+    minHeight: 80,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  twoColumn: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  column: {
+    flex: 1,
+  },
+  elevatorColumn: {
+    justifyContent: 'flex-end',
+  },
+  elevatorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  routeInfoText: {
-    ...Typography.bodyBold,
+  elevatorTextContainer: {
+    flex: 1,
+  },
+  elevatorLabel: {
+    ...Typography.body,
     color: Colors.dark,
+    fontWeight: '600',
   },
   nextButton: {
     backgroundColor: Colors.primary,
