@@ -16,6 +16,8 @@ export type PaymentType = 'CASH' | 'ONLINE_PAYMENT';
 
 export type PaymentStatus = 'pending' | 'held' | 'released' | 'refunded';
 
+export type ItemSize = 'small' | 'medium' | 'large' | 'xlarge';
+
 export interface User {
   id: string;
   email: string;
