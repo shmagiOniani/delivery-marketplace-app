@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
+import { GOOGLE_MAPS_API_KEY } from '@env';
 import { Colors } from '@/constants/Colors';
 import { Spacing } from '@/constants/Spacing';
 
@@ -90,9 +91,15 @@ export const MapPicker: React.FC<MapPickerProps> = ({
 
   const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
     try {
+      const apiKey = GOOGLE_MAPS_API_KEY || '';
+      if (!apiKey) {
+        console.warn('Google Maps API key not configured');
+        return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      }
+      
       // Using Google Geocoding API
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=YOUR_GOOGLE_MAPS_API_KEY`
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
       );
       const data = await response.json();
       
@@ -162,11 +169,18 @@ export const MapPicker: React.FC<MapPickerProps> = ({
 
     try {
       setIsLoadingLocation(true);
+      const apiKey = GOOGLE_MAPS_API_KEY || '';
+      if (!apiKey) {
+        Alert.alert('Error', 'Google Maps API key not configured');
+        setIsLoadingLocation(false);
+        return;
+      }
+      
       // Using Google Geocoding API for forward geocoding
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
           address
-        )}&key=YOUR_GOOGLE_MAPS_API_KEY`
+        )}&key=${apiKey}`
       );
       const data = await response.json();
 
