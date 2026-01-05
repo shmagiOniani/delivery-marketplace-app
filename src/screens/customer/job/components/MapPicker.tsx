@@ -56,6 +56,7 @@ export const MapPicker: React.FC<MapPickerProps> = ({
   });
   const [address, setAddress] = useState(defaultAddress);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
     if (defaultLat && defaultLng) {
@@ -238,10 +239,13 @@ export const MapPicker: React.FC<MapPickerProps> = ({
           ref={mapRef}
           provider={PROVIDER_GOOGLE}
           style={styles.map}
-          region={region}
+          initialRegion={region}
+          region={mapReady ? region : undefined}
           onPress={handleMapPress}
+          onMapReady={() => setMapReady(true)}
           showsUserLocation
           showsMyLocationButton={false}
+          loadingEnabled
         >
           <Marker coordinate={markerPosition} draggable onDragEnd={handleMapPress} />
         </MapView>
@@ -319,7 +323,8 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   map: {
-    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
   },
   currentLocationButton: {
     position: 'absolute',
