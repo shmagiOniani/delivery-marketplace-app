@@ -22,6 +22,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { MapPicker } from '@/screens/customer/job/components/MapPicker';
 import type { CustomerScreenProps } from '@/types/navigation';
 import type { JobPurpose } from '@/types';
+import { GOOGLE_MAPS_API_KEY } from '@env';
 
 interface Location {
   latitude: number;
@@ -72,11 +73,7 @@ export const NewOrderStep2Screen: React.FC<
 
   const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
     try {
-      const apiKey = process.env.GOOGLE_MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY';
-      if (apiKey === 'YOUR_GOOGLE_MAPS_API_KEY') {
-        return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-      }
-      
+      const apiKey = GOOGLE_MAPS_API_KEY || '';
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
       );
