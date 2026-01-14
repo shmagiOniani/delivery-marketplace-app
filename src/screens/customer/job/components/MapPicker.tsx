@@ -13,7 +13,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import { GOOGLE_MAPS_API_KEY } from '@env';
 import { Colors } from '@/constants/Colors';
@@ -92,7 +92,7 @@ export const MapPicker: React.FC<MapPickerProps> = ({
 
   const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
     try {
-      const apiKey = GOOGLE_MAPS_API_KEY || '';
+      const apiKey = 'AIzaSyANok3o7BWceAd_AzXQzSmtcEKvvsLPZqk';
       if (!apiKey) {
         console.warn('Google Maps API key not configured');
         return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
@@ -237,7 +237,7 @@ export const MapPicker: React.FC<MapPickerProps> = ({
       <View style={styles.mapContainer}>
         <MapView
           ref={mapRef}
-          provider={PROVIDER_GOOGLE}
+          provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
           style={styles.map}
           initialRegion={region}
           region={mapReady ? region : undefined}
