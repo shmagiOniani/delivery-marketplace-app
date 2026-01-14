@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  Switch,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -298,7 +297,6 @@ export const NewOrderStep3Screen: React.FC<
 
             {/* Floor and Elevator */}
             <View style={styles.section}>
-              <View style={styles.twoColumn}>
                 <View style={styles.column}>
                   <Text style={styles.label}>Delivery Floor</Text>
                   <TextInput
@@ -317,20 +315,26 @@ export const NewOrderStep3Screen: React.FC<
                 </View>
                 <View style={[styles.column, styles.elevatorColumn]}>
                   <View style={styles.elevatorContainer}>
+                  <TouchableOpacity
+                      style={[
+                        styles.checkbox,
+                        deliveryElevator && styles.checkboxChecked,
+                      ]}
+                      onPress={() => setDeliveryElevator(!deliveryElevator)}
+                      activeOpacity={0.7}
+                    >
+                      {deliveryElevator && (
+                        <Icon name="check" size={18} color={Colors.white} />
+                      )}
+                    </TouchableOpacity>
                     <Icon name="elevator" size={24} color={Colors.dark} />
                     <View style={styles.elevatorTextContainer}>
                       <Text style={styles.elevatorLabel}>Delivery Elevator</Text>
                     </View>
-                    <Switch
-                      value={deliveryElevator}
-                      onValueChange={setDeliveryElevator}
-                      trackColor={{ false: Colors.lightGray, true: Colors.primary }}
-                      thumbColor={Colors.white}
-                    />
+                  
                   </View>
                 </View>
               </View>
-            </View>
           </>
         )}
 
@@ -424,10 +428,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    backgroundColor: Colors.white,
+    // backgroundColor: Colors.white,
     borderRadius: 12,
     padding: Spacing.md,
-    borderWidth: 1,
+    // borderWidth: 1,
     borderColor: Colors.border,
   },
   elevatorTextContainer: {
@@ -437,6 +441,20 @@ const styles = StyleSheet.create({
     ...Typography.body,
     color: Colors.dark,
     fontWeight: '600',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: Colors.lightGray,
+    backgroundColor: Colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   centersContainer: {
     gap: Spacing.md,
