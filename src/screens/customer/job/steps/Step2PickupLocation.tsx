@@ -43,17 +43,21 @@ export const Step2PickupLocation: React.FC<Step2PickupLocationProps> = ({
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Pickup Location</Text>
-          <Text style={styles.subtitle}>
-            Where should the driver pick up the item?
-          </Text>
-        </View>
+    <ScrollView 
+      style={styles.container} 
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContent}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Pickup Location</Text>
+        <Text style={styles.subtitle}>
+          Where should the driver pick up the item?
+        </Text>
+      </View>
 
-        {/* Map Picker */}
+      {/* Map Picker Card */}
+      <View style={styles.card}>
         <MapPicker
           label="Select Pickup Location"
           onLocationSelect={(address, lat, lng) => {
@@ -64,12 +68,17 @@ export const Step2PickupLocation: React.FC<Step2PickupLocationProps> = ({
           defaultLng={formState.pickupLocation?.lng}
           errorMessage={errors?.pickupLocation}
         />
+      </View>
 
-        {/* Contact Information */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pickup Contact</Text>
-          
-          <View style={styles.inputGroup}>
+      {/* Contact Information Card */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardIcon}>👤</Text>
+          <Text style={styles.cardTitle}>Pickup Contact</Text>
+        </View>
+        
+        <View style={styles.inputRow}>
+          <View style={[styles.inputGroup, styles.inputHalf]}>
             <Text style={styles.inputLabel}>Contact Name *</Text>
             <TextInput
               style={[
@@ -83,7 +92,7 @@ export const Step2PickupLocation: React.FC<Step2PickupLocationProps> = ({
             />
           </View>
 
-          <View style={styles.inputGroup}>
+          <View style={[styles.inputGroup, styles.inputHalf]}>
             <Text style={styles.inputLabel}>Contact Phone *</Text>
             <TextInput
               style={[
@@ -92,79 +101,89 @@ export const Step2PickupLocation: React.FC<Step2PickupLocationProps> = ({
               ]}
               value={formState.pickupContact.phone}
               onChangeText={(text) => handleContactChange('phone', text)}
-              placeholder="+995 XXX XXX XXX"
+              placeholder="+995 XXX XXX"
               placeholderTextColor={Colors.gray}
               keyboardType="phone-pad"
             />
           </View>
-
-          {errors?.pickupContact && (
-            <Text style={styles.errorText}>{errors.pickupContact}</Text>
-          )}
         </View>
 
-        {/* Additional Details */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pickup Details</Text>
+        {errors?.pickupContact && (
+          <Text style={styles.errorText}>{errors.pickupContact}</Text>
+        )}
+      </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Floor Number (Optional)</Text>
+      {/* Pickup Details Card */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardIcon}>📍</Text>
+          <Text style={styles.cardTitle}>Pickup Details</Text>
+        </View>
+
+        <View style={styles.detailsRow}>
+          <View style={[styles.inputGroup, styles.inputHalf]}>
+            <Text style={styles.inputLabel}>Floor Number</Text>
             <TextInput
               style={styles.input}
               value={formState.pickupFloor}
               onChangeText={(text) => updateField('pickupFloor', text)}
-              placeholder="e.g., 3rd floor"
+              placeholder="e.g., 3rd"
               placeholderTextColor={Colors.gray}
               keyboardType="default"
             />
           </View>
 
-          <View style={styles.switchRow}>
-            <View style={styles.switchLabel}>
-              <Text style={styles.switchText}>Elevator Available</Text>
-              <Text style={styles.switchHint}>
-                Is there an elevator at pickup location?
-              </Text>
+          <View style={[styles.inputGroup, styles.inputHalf]}>
+            <View style={styles.switchContainer}>
+              <View style={styles.switchLabel}>
+                <Text style={styles.switchText}>Elevator Available</Text>
+              </View>
+              <Switch
+                value={formState.pickupElevator}
+                onValueChange={(value) => updateField('pickupElevator', value)}
+                trackColor={{
+                  false: Colors.lightGray,
+                  true: Colors.primary,
+                }}
+                thumbColor={Colors.white}
+              />
             </View>
-            <Switch
-              value={formState.pickupElevator}
-              onValueChange={(value) => updateField('pickupElevator', value)}
-              trackColor={{
-                false: Colors.lightGray,
-                true: Colors.primary,
-              }}
-              thumbColor={Colors.white}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Special Notes (Optional)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={formState.pickupNotes}
-              onChangeText={(text) => updateField('pickupNotes', text)}
-              placeholder="e.g., Ring doorbell, parking instructions, etc."
-              placeholderTextColor={Colors.gray}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
           </View>
         </View>
 
-        {/* Photo Upload */}
-        <View style={styles.section}>
-          <PhotoUpload
-            label="Item Photos"
-            maxPhotos={5}
-            photos={formState.pickupPhotos}
-            onPhotosChange={(urls) => updateField('pickupPhotos', urls)}
-            errorMessage={errors?.pickupPhotos}
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Special Notes</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            value={formState.pickupNotes}
+            onChangeText={(text) => updateField('pickupNotes', text)}
+            placeholder="e.g., Ring doorbell, parking instructions, etc."
+            placeholderTextColor={Colors.gray}
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
           />
-          <Text style={styles.photoHint}>
-            📸 Add photos to help drivers understand what they're picking up
-          </Text>
         </View>
+      </View>
+
+      {/* Photo Upload Card */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardIcon}>📸</Text>
+          <View style={styles.cardTitleContainer}>
+            <Text style={styles.cardTitle}>Item Photos</Text>
+            <Text style={styles.cardSubtitle}>
+              Help drivers identify what to pick up
+            </Text>
+          </View>
+        </View>
+        <PhotoUpload
+          label=""
+          maxPhotos={5}
+          photos={formState.pickupPhotos}
+          onPhotosChange={(urls) => updateField('pickupPhotos', urls)}
+          errorMessage={errors?.pickupPhotos}
+        />
       </View>
     </ScrollView>
   );
@@ -175,90 +194,133 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  content: {
+  scrollContent: {
     padding: Spacing.md,
+    paddingBottom: Spacing.xl,
   },
   header: {
     marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.xs,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
     color: Colors.dark,
     marginBottom: Spacing.xs,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.gray,
     lineHeight: 22,
   },
-  section: {
-    marginTop: Spacing.lg,
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  sectionTitle: {
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  cardIcon: {
+    fontSize: 24,
+    marginRight: Spacing.sm,
+  },
+  cardTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: Colors.dark,
+    flex: 1,
+  },
+  cardTitleContainer: {
+    flex: 1,
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    color: Colors.gray,
+    marginTop: 2,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
     marginBottom: Spacing.md,
   },
   inputGroup: {
     marginBottom: Spacing.md,
+    flex: 1,
+  },
+  inputHalf: {
+    flex: 1,
   },
   inputLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: Colors.dark,
     marginBottom: Spacing.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: Colors.white,
-    borderWidth: 1,
+    backgroundColor: Colors.background,
+    borderWidth: 1.5,
     borderColor: Colors.border,
-    borderRadius: 8,
-    padding: Spacing.md,
+    borderRadius: 12,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
     fontSize: 16,
     color: Colors.dark,
+    minHeight: 48,
   },
   inputError: {
     borderColor: Colors.error,
+    backgroundColor: '#FEF2F2',
   },
   textArea: {
-    minHeight: 100,
+    minHeight: 90,
     paddingTop: Spacing.md,
   },
-  switchRow: {
+  switchContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderRadius: 8,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    minHeight: 48,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
   },
   switchLabel: {
     flex: 1,
-    marginRight: Spacing.md,
   },
   switchText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: Colors.dark,
-    marginBottom: Spacing.xs,
-  },
-  switchHint: {
-    fontSize: 12,
-    color: Colors.gray,
   },
   errorText: {
     fontSize: 12,
     color: Colors.error,
     marginTop: Spacing.xs,
-  },
-  photoHint: {
-    fontSize: 12,
-    color: Colors.gray,
-    marginTop: Spacing.sm,
-    fontStyle: 'italic',
+    fontWeight: '500',
   },
 });
 
